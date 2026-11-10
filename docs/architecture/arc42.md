@@ -54,7 +54,7 @@ One image `ghcr.io/nanoatomi/day-app` (Node builds the SPA, Python serves it and
 - **Calendar blocks** (`source = calendar`) are read-only: only their status changes.
 - **Optimistic updates:** done, skip and +15 min show at once and roll back on an error.
 - **Overlaps:** blocks that share time sit side by side on the timeline with an amber mark.
-- **Dragging:** the timeline moves a block with the pointer (5-minute steps); on touch only after a 350 ms long press, and a non-passive `touchmove` listener stops the page from scrolling meanwhile. The bottom edge resizes at once. One PATCH when the pointer is let go.
+- **Dragging:** the timeline moves a block with the pointer (5-minute steps) or places a new one (quarter hours); on touch only after a 350 ms long press, and a non-passive `touchmove` listener stops the page from scrolling meanwhile. Positions are computed from page coordinates, so the page can auto-scroll near the screen edges while something is held. The bottom edge resizes at once. One PATCH (or the new block's sheet) when the pointer is let go; over the hour labels it cancels.
 - **Cascade** happens on the server (`push_following` in `api/days.py`), so every client sees the same day.
 
 ## 9. Decisions

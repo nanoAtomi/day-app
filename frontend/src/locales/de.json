@@ -55,8 +55,9 @@
     "previous": "Vorheriger Tag",
     "next": "Nächster Tag",
     "overlap": "Überschneidet sich",
-    "emptyHint": "Tippe auf eine Uhrzeit, um dort einen Block anzulegen.",
-    "template": "Vorlage für diesen Tag"
+    "emptyHint": "Tippe auf eine Uhrzeit – oder halte sie gedrückt und schieb den neuen Block an die richtige Stelle.",
+    "template": "Vorlage für diesen Tag",
+    "dropToCancel": "Loslassen zum Abbrechen"
   },
   "block": {
     "new": "Neuer Block",
@@ -192,6 +193,11 @@
     "hint": {
       "fixed": "Blöcke bleiben, wo sie sind – auch wenn einer überzieht.",
       "cascade": "Überzieht ein Block (+15 min, länger gezogen, spät erledigt), rutschen die folgenden nach hinten – bis zur nächsten Lücke."
+    },
+    "switch": "Bei Verspätung nachrutschen",
+    "short": {
+      "fixed": "Aus – Blöcke bleiben, wo sie sind.",
+      "cascade": "An – überzieht ein Block, rutschen die nächsten nach."
     }
   }
 }

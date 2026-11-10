@@ -127,9 +127,9 @@ describe('App', () => {
     renderApp('/day');
     const commute = (await screen.findAllByRole('button', { name: /Arbeitsweg/ })).at(-1)!;
     // An hour is 64 px: drag 64 px down = one hour later.
-    fireEvent.pointerDown(commute, { pointerId: 1, pointerType: 'mouse', button: 0, clientY: 100 });
-    fireEvent.pointerMove(window, { pointerId: 1, clientY: 164 });
-    fireEvent.pointerUp(window, { pointerId: 1, clientY: 164 });
+    fireEvent.pointerDown(commute, { pointerId: 1, pointerType: 'mouse', button: 0, clientX: 200, clientY: 100 });
+    fireEvent.pointerMove(window, { pointerId: 1, clientX: 200, clientY: 164 });
+    fireEvent.pointerUp(window, { pointerId: 1, clientX: 200, clientY: 164 });
     await waitFor(() => expect(requests).toContainEqual({ method: 'PATCH', url: '/api/blocks/3', body: { start_minute: 540, end_minute: 600 } }));
 
     const bath = (await screen.findAllByRole('button', { name: /Bad\/Anziehen/ })).at(-1)!;
@@ -143,7 +143,7 @@ describe('App', () => {
   it('switches the day to pushing back', async () => {
     const user = userEvent.setup();
     renderApp('/day');
-    await user.click(await screen.findByRole('button', { name: 'Fest' }));
+    await user.click(await screen.findByRole('switch', { name: 'Bei Verspätung nachrutschen' }));
     await waitFor(() => expect(requests).toContainEqual({ method: 'PATCH', url: '/api/days/2026-11-10', body: { delay_mode: 'cascade' } }));
   });
 
@@ -157,5 +157,29 @@ describe('App', () => {
     } finally {
       document.documentElement.classList.remove('phone');
     }
+  });
+
+  it('places a new block by holding a free spot and opens it', async () => {
+    day = { ...day, blocks: [] };
+    renderApp('/day');
+    const grid = await screen.findByLabelText('Zeitleiste');
+    // 12 px padding + 8 hours of 64 px: 08:00. Dragging 32 px down: half an hour later.
+    fireEvent.pointerDown(grid, { pointerId: 3, pointerType: 'mouse', button: 0, clientX: 200, clientY: 12 + 8 * 64 + 5 });
+    fireEvent.pointerMove(window, { pointerId: 3, clientX: 200, clientY: 12 + 8 * 64 + 37 });
+    fireEvent.pointerUp(window, { pointerId: 3, clientX: 200, clientY: 12 + 8 * 64 + 37 });
+    expect(await screen.findByRole('heading', { name: 'Neuer Block' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Beginn')).toHaveValue('08:30');
+    expect(screen.getByLabelText('Ende')).toHaveValue('09:30');
+  });
+
+  it('cancels placing a block when it is dragged onto the hours', async () => {
+    day = { ...day, blocks: [] };
+    renderApp('/day');
+    const grid = await screen.findByLabelText('Zeitleiste');
+    fireEvent.pointerDown(grid, { pointerId: 4, pointerType: 'mouse', button: 0, clientX: 200, clientY: 600 });
+    fireEvent.pointerMove(window, { pointerId: 4, clientX: 10, clientY: 640 });
+    expect(screen.getAllByText('Loslassen zum Abbrechen').length).toBeGreaterThan(0);
+    fireEvent.pointerUp(window, { pointerId: 4, clientX: 10, clientY: 640 });
+    expect(screen.queryByRole('heading', { name: 'Neuer Block' })).not.toBeInTheDocument();
   });
 });

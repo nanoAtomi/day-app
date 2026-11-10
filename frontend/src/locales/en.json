@@ -55,8 +55,9 @@
     "previous": "Previous day",
     "next": "Next day",
     "overlap": "Overlaps",
-    "emptyHint": "Tap a time to add a block there.",
-    "template": "Template for this day"
+    "emptyHint": "Tap a time - or hold it and slide the new block where it belongs.",
+    "template": "Template for this day",
+    "dropToCancel": "Let go to cancel"
   },
   "block": {
     "new": "New block",
@@ -192,6 +193,11 @@
     "hint": {
       "fixed": "Blocks stay where they are - even when one runs over.",
       "cascade": "When a block runs over (+15 min, pulled longer, done late), the following ones move back - up to the next gap."
+    },
+    "switch": "Push back when running late",
+    "short": {
+      "fixed": "Off - blocks stay where they are.",
+      "cascade": "On - when a block runs over, the next ones move back."
     }
   }
 }
