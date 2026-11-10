@@ -1,0 +1,105 @@
+/*
+ * The apps' legal pages (privacy, terms) - static and public, but in the app's frame:
+ * the same bar as PlatformBar.tsx, a page head and prose like nicasso.de's legal pages,
+ * the same footer as AppFooter.tsx. Tokens are the platform's (ui-guidelines.md);
+ * legal.js sets class "dark" on <html> from the platform-wide choice.
+ */
+:root {
+  color-scheme: light;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --brand: #3e6ae1;
+  --ink: #171a20;
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --surface-2: #f1f5f9;
+  --text: #171a20;
+  --muted: #5c6370;
+  --line: rgb(15 23 42 / 0.08);
+  --chip: #334155;
+  /* The app's accent for links and the glow behind the title: <html data-accent="…">. */
+  --accent: var(--brand);
+}
+:root.dark {
+  color-scheme: dark;
+  --brand: #4f7bf0;
+  --bg: #0c0d10;
+  --surface: #15161b;
+  --surface-2: #1d1f25;
+  --text: #f1f5f9;
+  --muted: #9aa3b2;
+  --line: rgb(255 255 255 / 0.09);
+  --chip: #e2e8f0;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 var(--font); overflow-x: hidden; }
+[hidden] { display: none !important; }
+a { color: inherit; }
+.container { width: min(1180px, 100% - 32px); margin-inline: auto; }
+@media (min-width: 768px) { .container { width: min(1180px, 100% - 64px); } }
+
+/* ---------- Bar: ‹ PORTAL │ 💡 App                          (AB) ---------- */
+.bar {
+  position: sticky; top: 0; z-index: 20; padding-top: env(safe-area-inset-top);
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+:root:not(.dark) .bar { border-bottom-color: #e2e8f0; }
+.bar .container { height: 64px; display: flex; align-items: center; gap: 12px; }
+.portal-chip {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px; border-radius: 999px;
+  background: var(--surface-2); color: var(--chip); text-decoration: none;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; transition: background .2s;
+}
+.portal-chip span { font-size: 14px; letter-spacing: normal; }
+.portal-chip:hover { background: color-mix(in srgb, var(--text) 10%, var(--surface-2)); }
+.bar-divider { width: 1px; height: 24px; background: var(--line); }
+:root:not(.dark) .bar-divider { background: #e2e8f0; }
+.bar-app { display: flex; align-items: center; gap: 8px; min-width: 0; min-height: 40px; text-decoration: none; }
+.bar-app .icon { font-size: 20px; line-height: 1; }
+.bar-app strong { font-weight: 700; letter-spacing: -0.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar-avatar {
+  margin-left: auto; width: 36px; height: 36px; flex: none; border-radius: 50%;
+  display: grid; place-items: center; text-decoration: none;
+  background: var(--surface-2); color: var(--muted); font-size: 14px; font-weight: 700;
+  transition: box-shadow .2s;
+}
+.bar-avatar.signed-in { background: var(--ink); color: #fff; }
+:root.dark .bar-avatar.signed-in { background: #fff; color: var(--ink); }
+.bar-avatar:hover { box-shadow: 0 0 0 4px var(--surface-2); }
+
+/* ---------- Page head and text ---------- */
+.legal-head { position: relative; isolation: isolate; overflow: hidden; padding: 64px 0 24px; text-align: center; }
+.legal-head::before {
+  content: ""; position: absolute; z-index: -1; inset: -40% 20% auto; height: 360px; border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 22%, transparent), transparent);
+  filter: blur(20px);
+}
+.legal-head h1 { margin: 0; font-size: clamp(36px, 7vw, 64px); font-weight: 700; line-height: 1.1; letter-spacing: -0.04em; }
+.legal-head .updated { margin: 12px 0 0; color: var(--muted); font-size: 15px; }
+.prose { max-width: 68ch; margin: 0 auto; padding: 16px 0 72px; font-size: 18px; }
+.prose h2 { font-size: 24px; line-height: 1.2; letter-spacing: -0.02em; margin: 1.8em 0 .5em; }
+.prose p, .prose ul, .prose ol { margin: 0 0 1.1em; }
+.prose li { margin: .3em 0; }
+.prose a { color: var(--accent); }
+.prose .notice { border-radius: 16px; padding: 14px 18px; background: color-mix(in srgb, #f59e0b 14%, transparent); font-size: 16px; }
+/* A rule per row with its emoji (Ideas' terms). */
+.prose .rules { list-style: none; padding: 0; display: grid; gap: 10px; }
+.prose .rules li { display: flex; gap: 14px; margin: 0; padding: 16px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); font-size: 16px; }
+.prose .rules li > span:first-child { font-size: 24px; line-height: 1.2; }
+.prose .rules strong { display: block; }
+
+/* ---------- Footer: the same as AppFooter.tsx ---------- */
+.footer { border-top: 1px solid var(--line); padding: 32px 0 calc(32px + env(safe-area-inset-bottom)); font-size: 14px; color: var(--muted); }
+.footer .container { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+.footer nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
+.footer a { text-decoration: none; }
+.footer a:hover, .footer a[aria-current="page"] { color: var(--text); }
+.footer .wordmark { font-weight: 700; letter-spacing: 0.35em; text-transform: uppercase; color: var(--text); }
+@media (min-width: 700px) {
+  .footer .container { flex-direction: row; justify-content: space-between; text-align: left; }
+}
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }

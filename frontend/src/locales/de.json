@@ -1,0 +1,108 @@
+{
+  "app": {
+    "name": "Tag"
+  },
+  "loading": "Einen Moment…",
+  "error": {
+    "load": "Das hat nicht geklappt: {{message}}",
+    "notSignedIn": "Du bist nicht angemeldet. Lade die Seite neu, um dich anzumelden.",
+    "retry": "Nochmal versuchen"
+  },
+  "common": {
+    "close": "Schließen",
+    "cancel": "Abbrechen",
+    "ok": "OK",
+    "save": "Speichern",
+    "delete": "Löschen",
+    "add": "Hinzufügen"
+  },
+  "nav": {
+    "main": "Ansichten",
+    "now": "Jetzt",
+    "day": "Tag"
+  },
+  "time": {
+    "h": "h",
+    "min": "min"
+  },
+  "now": {
+    "label": "Jetzt dran",
+    "current": "Aktueller Block",
+    "left": "noch {{duration}}",
+    "progress": "Fortschritt",
+    "done": "Erledigt",
+    "skip": "Überspringen",
+    "extend": "+15 min",
+    "next": "Danach",
+    "in": "in {{duration}}",
+    "emptyTitle": "Noch ziemlich leer hier.",
+    "emptyText": "Plan den Tag in Blöcken – dann siehst du hier immer, was gerade dran ist.",
+    "addFirst": "Ersten Block anlegen",
+    "freeTitle": "Gerade frei",
+    "freeUntil": "Luft bis {{time}}.",
+    "doneTitle": "Feierabend!",
+    "doneText": "Für heute ist nichts mehr geplant.",
+    "toDay": "Ganzer Tag"
+  },
+  "day": {
+    "timeline": "Zeitleiste",
+    "today": "Heute",
+    "toToday": "Heute",
+    "previous": "Vorheriger Tag",
+    "next": "Nächster Tag",
+    "overlap": "Überschneidet sich",
+    "emptyHint": "Tippe auf eine Uhrzeit, um dort einen Block anzulegen."
+  },
+  "block": {
+    "new": "Neuer Block",
+    "edit": "Block bearbeiten",
+    "title": "Was steht an?",
+    "titlePlaceholder": "z. B. Frühstück",
+    "start": "Beginn",
+    "end": "Ende",
+    "category": "Art",
+    "status": "Status",
+    "needTitle": "Gib dem Block einen Namen.",
+    "badTimes": "Das Ende muss mindestens 5 Minuten nach dem Beginn liegen.",
+    "fromCalendar": "Aus deinem Kalender – ändern kannst du ihn dort.",
+    "deleteTitle": "Block löschen?",
+    "deleteText": "„{{title}}“ verschwindet aus diesem Tag."
+  },
+  "status": {
+    "open": "Offen",
+    "done": "Erledigt",
+    "skipped": "Übersprungen"
+  },
+  "category": {
+    "meal": "Essen",
+    "care": "Pflege",
+    "commute": "Weg",
+    "work": "Arbeit",
+    "chores": "Haushalt",
+    "sport": "Sport",
+    "leisure": "Freizeit",
+    "other": "Sonstiges"
+  },
+  "platform": {
+    "portal": "Portal",
+    "portalTitle": "Zurück zum App-Portal",
+    "menu": "Konto-Menü",
+    "language": "Sprache",
+    "profile": "Profil bearbeiten",
+    "feedback": "Feedback zu dieser App",
+    "signOut": "Abmelden",
+    "toDark": "Dunkle Darstellung",
+    "toLight": "Helle Darstellung",
+    "made": "Handgemacht. Mit zu viel Kaffee.",
+    "legal": "Rechtliches",
+    "privacy": "Datenschutz",
+    "terms": "Nutzungsbedingungen",
+    "viewAs": "Ansicht",
+    "viewAsHint": "So sehen andere die Apps – nur für dich als Superuser, jederzeit zurückschaltbar.",
+    "views": {
+      "superuser": "Superuser",
+      "admin": "Admin",
+      "user": "Nutzer"
+    }
+  }
+}

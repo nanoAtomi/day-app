@@ -1,0 +1,129 @@
+# Publishes Day to the VPS. GitHub → Actions → "Deploy" → Run workflow.
+#
+# Runs by itself after every green "Build image" on main (pushes only) - a push is a
+# release (owner's decision, 2026-10-24). By hand for a rollback:
+#
+#   tag empty → the latest commit of the branch selected in the dialog
+#   tag given → that exact build, e.g. sha-2376314 (= rollback)
+#
+# Runs on a normal GitHub runner: it sends image, tag and portal.yml to the Multi-App
+# portal, which pulls the image and runs the app, then waits for the result. The image
+# must exist - the "Build image" run for that commit must be green.
+#
+# Repository secrets (Settings → Secrets and variables → Actions):
+#   PORTAL_URL           https://api.nicasso.de
+#   PORTAL_DEPLOY_TOKEN  portal → Admin → Apps → Day → Setup → Create token
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: ["Build image"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Image tag (sha-xxxxxxx). Empty = latest commit of the selected branch"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-day
+  cancel-in-progress: false
+
+env:
+  APP_URL: https://day.nicasso.de
+  APP_SLUG: day
+  IMAGE: ghcr.io/nanoatomi/day-app
+
+jobs:
+  deploy:
+    # After a build: only a green one for a push (pull requests build too, never deploy).
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # portal.yml of the commit that was built, not of whatever main is now.
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Deploy via portal
+        env:
+          PORTAL_URL: ${{ secrets.PORTAL_URL }}
+          PORTAL_DEPLOY_TOKEN: ${{ secrets.PORTAL_DEPLOY_TOKEN }}
+          INPUT_TAG: ${{ inputs.tag }}
+          # The commit the build ran for (after a build), else the selected branch's.
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: |
+          set -euo pipefail
+          [ -n "$PORTAL_URL" ] && [ -n "$PORTAL_DEPLOY_TOKEN" ] \
+            || { echo "::error::Set the repository secrets PORTAL_URL and PORTAL_DEPLOY_TOKEN"; exit 1; }
+          TAG="${INPUT_TAG:-sha-${HEAD_SHA::7}}"
+          echo "Deploying $IMAGE:$TAG"
+
+          # portal.yml → JSON (yq is preinstalled on GitHub's Ubuntu runners).
+          jq -n --arg image "$IMAGE" --arg tag "$TAG" --argjson manifest "$(yq -o=json '.' portal.yml)" \
+            '{image: $image, tag: $tag, manifest: $manifest}' > payload.json
+
+          # The portal may be restarting (its own release): no answer or 502/503/504 means it is
+          # not back yet, not that it refused - try again for up to 5 minutes.
+          code=000
+          for _ in $(seq 1 30); do
+            code=$(curl -sS -o response.json -w '%{http_code}' --max-time 30 -X POST \
+              -H "X-Deploy-Token: $PORTAL_DEPLOY_TOKEN" -H "Content-Type: application/json" \
+              --data @payload.json "$PORTAL_URL/api/hooks/apps/$APP_SLUG/deploy" || true)
+            case "$code" in
+              000|502|503|504) echo "   portal not reachable (HTTP $code), retrying in 10 s"; sleep 10 ;;
+              *) break ;;
+            esac
+          done
+          cat response.json 2>/dev/null || true; echo
+          [ "$code" = "202" ] || { echo "::error::Portal refused the deploy (HTTP $code)"; exit 1; }
+
+          # Wait for the portal to finish pulling and starting the container.
+          for _ in $(seq 1 120); do
+            sleep 5
+            # A portal restart in between is no failure: ask again on the next round.
+            curl -fsS --max-time 30 -H "X-Deploy-Token: $PORTAL_DEPLOY_TOKEN" \
+              "$PORTAL_URL/api/hooks/apps/$APP_SLUG/status" > status.json \
+              || { echo "   status not reachable, retrying"; continue; }
+            status=$(jq -r '.status' status.json)
+            case "$status" in
+              succeeded) echo "✅ $(jq -r '.message' status.json)"; exit 0 ;;
+              failed)    echo "::error::$(jq -r '.message' status.json)"; exit 1 ;;
+            esac
+          done
+          echo "::error::No result after 10 minutes - check Admin → Apps → the app → Setup in the portal"
+          exit 1
+
+      # "succeeded" only means the container started. Make sure the app answers from
+      # outside, through Traefik: on its first public path (no login needed there), or
+      # without one at least the route (the app itself, or the gateway's login).
+      # Red here = deployed but not reachable - roll back (README) and look at the logs.
+      - name: Smoke check
+        run: |
+          set -euo pipefail
+          path=$(yq '.publicPaths[0] // ""' portal.yml)
+          if [ -n "$path" ]; then
+            url="$APP_URL$path"; expected='^[23][0-9][0-9]$'
+          else
+            # A public: true app answers itself; otherwise the gateway asks for a login.
+            echo "::warning::No publicPaths in portal.yml - only checking that the route exists"
+            url="$APP_URL/"; expected='^([23][0-9][0-9]|401)$'
+          fi
+          code=000
+          for _ in $(seq 1 36); do
+            # 000 = no answer, 404 = no route, 5xx = Traefik cannot reach the app.
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$url" || true)
+            if [[ $code =~ $expected ]]; then echo "✅ $url → $code"; exit 0; fi
+            echo "   $url → $code, retrying"
+            sleep 5
+          done
+          echo "::error::$url did not answer within 3 minutes (last status $code)"
+          exit 1

@@ -1,0 +1,36 @@
+node_modules/
+frontend/dist/
+__pycache__/
+.pytest_cache/
+*.db
+.env
+.env.*
+!.env.example
+
+# --- Generated at build or run time, never committed ---
+# Build output
+dist/
+build/
+target/
+out/
+.angular/
+.astro/
+.vite/
+*.tsbuildinfo
+coverage/
+# Python
+*.pyc
+.mypy_cache/
+.ruff_cache/
+.venv*/
+venv/
+htmlcov/
+.coverage
+# Runtime data, logs, local secrets
+*.log
+*.sqlite
+*.sqlite3
+*.db-journal
+# OS files
+.DS_Store
+Thumbs.db
