@@ -36,6 +36,9 @@ export interface Block {
   actual_start: string | null;
   actual_end: string | null;
   subtasks: Subtask[];
+  /** Calendar entries (read-only, negative id): the calendar's name and colour. */
+  calendar?: string | null;
+  color?: string | null;
 }
 
 export interface Day {

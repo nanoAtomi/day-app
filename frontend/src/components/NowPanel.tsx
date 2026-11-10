@@ -40,7 +40,7 @@ export function NowPanel({ date, blocks, minute, onOpen }: { date: string; block
     );
   }
 
-  const style = look(current.category);
+  const style = current.source === 'calendar' ? { ...look('other'), icon: '📅' } : look(current.category);
   const total = current.end_minute - current.start_minute;
   const left = current.end_minute - minute;
   const progress = Math.min(100, Math.max(0, ((minute - current.start_minute) / total) * 100));
@@ -86,6 +86,10 @@ export function NowPanel({ date, blocks, minute, onOpen }: { date: string; block
           </div>
         )}
 
+        {current.source === 'calendar' ? (
+          // An appointment: nothing to tick off or extend here - it lives in its calendar.
+          <p className="mt-6 text-sm text-slate-600 dark:text-slate-300">📅 {t('now.fromCalendar', { name: current.calendar ?? '' })}</p>
+        ) : (
         <div className="mt-6 grid grid-cols-3 gap-2">
           <button type="button" className={`${primaryButton} gap-1.5 px-2 whitespace-nowrap`} onClick={() => update.mutate({ id: current.id, status: 'done' })}>
             <span aria-hidden className="max-sm:hidden">✓</span>
@@ -103,6 +107,7 @@ export function NowPanel({ date, blocks, minute, onOpen }: { date: string; block
             {t('now.extend')}
           </button>
         </div>
+        )}
       </section>
       {next && <NextCard block={next} minute={minute} units={units} onOpen={onOpen} />}
     </div>

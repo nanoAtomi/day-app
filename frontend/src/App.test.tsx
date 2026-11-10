@@ -202,4 +202,16 @@ describe('App', () => {
     await user.type(await screen.findByRole('textbox', { name: 'Neue Unteraufgabe' }), 'Haare föhnen{Enter}');
     await waitFor(() => expect(requests).toContainEqual({ method: 'POST', url: '/api/blocks/2/subtasks', body: { title: 'Haare föhnen' } }));
   });
+
+  it('shows a running appointment without done, skip or +15', async () => {
+    day = {
+      ...day,
+      blocks: [{ ...block(-1000007, 450, 480, 'Team-Meeting', 'other'), source: 'calendar', calendar: 'Arbeit', color: 'blue' }],
+    };
+    renderApp();
+    const current = await screen.findByRole('region', { name: 'Aktueller Block' });
+    expect(within(current).getByText('Team-Meeting')).toBeInTheDocument();
+    expect(within(current).getByText(/Aus deinem Kalender „Arbeit“/)).toBeInTheDocument();
+    expect(within(current).queryByRole('button', { name: '+15 min' })).not.toBeInTheDocument();
+  });
 });

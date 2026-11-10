@@ -46,7 +46,8 @@
     "freeUntil": "Breathing room until {{time}}.",
     "doneTitle": "Done for the day!",
     "doneText": "Nothing else is planned for today.",
-    "toDay": "Whole day"
+    "toDay": "Whole day",
+    "fromCalendar": "From your calendar \"{{name}}\" - change it there."
   },
   "day": {
     "timeline": "Timeline",
@@ -70,7 +71,7 @@
     "status": "Status",
     "needTitle": "Give the block a name.",
     "badTimes": "The end has to be at least 5 minutes after the start.",
-    "fromCalendar": "From your calendar - change it there.",
+    "fromCalendar": "From your calendar \"{{name}}\" - change the appointment there.",
     "deleteTitle": "Delete block?",
     "deleteText": "\"{{title}}\" disappears from this day."
   },
@@ -181,7 +182,7 @@
   },
   "settings": {
     "title": "Settings",
-    "lead": "Delay mode and notifications."
+    "lead": "Delay mode, notifications and calendars."
   },
   "delay": {
     "title": "When a block runs over",
@@ -230,6 +231,51 @@
       "on": "On for this device. ✓",
       "denied": "Blocked - allow notifications in the browser's settings.",
       "server-off": "Not set up on the server yet."
+    }
+  },
+  "calendar": {
+    "title": "Calendars",
+    "lead": "Appointments from Outlook, iCloud or Google show hatched in the day - read-only, synced every 15 minutes.",
+    "status": "{{count}} appointments · {{host}} · last {{when}}",
+    "sync": "Sync \"{{name}}\" now",
+    "delete": "Remove \"{{name}}\"",
+    "deleteTitle": "Remove calendar?",
+    "deleteText": "The appointments from \"{{name}}\" disappear from day and week. The calendar itself stays as it is.",
+    "add": "Add a calendar",
+    "name": "Name",
+    "namePlaceholder": "e.g. Work",
+    "url": "Subscription address (ICS)",
+    "urlHint": "Starts with webcal:// or https:// and often ends in .ics. Treat it like a password - it won't be shown again.",
+    "where": "Where do I find the address?",
+    "color": "Colour",
+    "addButton": "Add",
+    "adding": "Reading …",
+    "providers": {
+      "outlook": {
+        "name": "Outlook",
+        "steps": "Outlook on the web → Settings → Calendar → Shared calendars → \"Publish a calendar\" → copy the ICS link. For work accounts, IT decides whether this is allowed."
+      },
+      "icloud": {
+        "name": "iCloud",
+        "steps": "Calendar app → (i) next to the calendar → turn on \"Public Calendar\" → share/copy the link."
+      },
+      "google": {
+        "name": "Google",
+        "steps": "Google Calendar on the web → Settings → pick the calendar → copy \"Secret address in iCal format\"."
+      }
+    },
+    "errors": {
+      "scheme": "The address has to start with https:// or webcal://.",
+      "credentials": "Addresses with a user name or password don't work.",
+      "unreachable": "The calendar's server can't be reached.",
+      "forbidden": "This address isn't allowed.",
+      "http": "The calendar answers with error {{status}} - is the address still valid?",
+      "too_big": "The calendar is too big (over 5 MB).",
+      "redirects": "Too many redirects.",
+      "not_ics": "There's no calendar file (ICS) at that address.",
+      "timeout": "The calendar took too long - try again later.",
+      "unreadable": "The calendar couldn't be read.",
+      "too_many": "More than 10 calendars don't work."
     }
   }
 }
