@@ -1,0 +1,59 @@
+# How the nicasso portal runs this app. Sent with every deploy
+# (.github/workflows/deploy.yml) - change it together with the code that needs it.
+#
+# Secrets are NOT here: set them once in the portal (Apps → Day → Setup → Variables).
+# A portal value overrides a value of the same name from this file. Day needs none yet;
+# Web Push (a later step) will add VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY (secret) and
+# VAPID_SUBJECT.
+#
+# The portal itself sets PUBLIC_URL, DATABASE_URL (database: true),
+# GATEWAY_SHARED_SECRET (gatewaySecret: true), PORTAL_URL and PORTAL_LOGOUT_URL.
+name: Day
+description: Plan the day in time blocks and see what's on right now
+icon: "🕘"
+port: 8000
+healthPath: /api/health
+# Reachable without login - only what truly must be public: the legal pages.
+publicPaths:
+  - /privacy
+  - /terms
+  - /legal
+database: true
+gatewaySecret: true
+env:
+  AUTH_MODE: gateway
+
+# How the app presents itself on nicasso.de/apps/day - goes live with the next deploy.
+showcase:
+  de:
+    tagline: Was ist gerade dran? Ein Blick genügt.
+    summary: Plan den Tag in festen Blöcken – vom Frühstück bis zum Feierabend. Die App zeigt dir sofort, was jetzt ansteht und wie viel Zeit noch bleibt.
+    features:
+      - icon: "⏳"
+        title: Jetzt im Blick
+        text: Der aktuelle Block groß, die Restzeit als Balken, der nächste gleich darunter.
+      - icon: "🗓️"
+        title: Der Tag als Zeitleiste
+        text: Alle Blöcke untereinander, Überschneidungen springen ins Auge.
+      - icon: "✅"
+        title: Abhaken, überspringen, verlängern
+        text: Ein Tipp – und der Plan weiß Bescheid. Noch 15 Minuten? Auch kein Problem.
+      - icon: "📱"
+        title: Wie eine echte App
+        text: Auf dem Home-Bildschirm installieren, auf Handy und Rechner gleich gut.
+  en:
+    tagline: What's on right now? One glance tells you.
+    summary: Plan the day in fixed blocks - from breakfast to the end of the day. The app shows at once what's on now and how much time is left.
+    features:
+      - icon: "⏳"
+        title: Now at a glance
+        text: The current block big, the time left as a bar, the next one right below.
+      - icon: "🗓️"
+        title: The day as a timeline
+        text: Every block in one column, overlaps stand out.
+      - icon: "✅"
+        title: Done, skip, a bit longer
+        text: One tap and the plan knows. 15 more minutes? No problem either.
+      - icon: "📱"
+        title: Feels like a real app
+        text: Install it on the home screen; works just as well on phone and desktop.
