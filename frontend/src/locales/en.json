@@ -23,7 +23,8 @@
     "today": "Today",
     "week": "Week",
     "more": "More",
-    "templates": "Templates"
+    "templates": "Templates",
+    "stats": "Statistics"
   },
   "time": {
     "h": "h",
@@ -277,5 +278,24 @@
       "unreadable": "The calendar couldn't be read.",
       "too_many": "More than 10 calendars don't work."
     }
+  },
+  "stats": {
+    "title": "Statistics",
+    "lead": "How much of the plan really happened.",
+    "streak": "Streak",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "streakHint": "Days with at least 80 % done",
+    "thisWeek": "This week",
+    "ofDue": "{{done}} of {{total}} done",
+    "perDay": "The last 4 weeks",
+    "empty": "Nothing ticked off yet - mark blocks done or skip them and this fills up.",
+    "oftenSkipped": "Often skipped",
+    "nothingSkipped": "Nothing you keep skipping. 👏",
+    "skippedOf": "{{skipped}}× of {{total}}",
+    "bar": "{{day}}: {{rate}} ({{done}} of {{total}})",
+    "barEmpty": "{{day}}: nothing planned",
+    "nothingDue": "Nothing due.",
+    "detail": "{{done}} done, {{skipped}} skipped, {{missed}} left - {{rate}}"
   }
 }
