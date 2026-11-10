@@ -181,7 +181,7 @@
   },
   "settings": {
     "title": "Einstellungen",
-    "lead": "Verzugsmodus – bald auch Hinweise und Kalender."
+    "lead": "Verzugsmodus und Benachrichtigungen."
   },
   "delay": {
     "title": "Wenn ein Block länger dauert",
@@ -206,5 +206,30 @@
     "placeholder": "Unteraufgabe hinzufügen",
     "add": "Unteraufgabe hinzufügen",
     "remove": "„{{title}}“ entfernen"
+  },
+  "push": {
+    "title": "Benachrichtigungen",
+    "enable": "Auf diesem Gerät einschalten",
+    "disable": "Ausschalten",
+    "test": "Test senden",
+    "testSent": "Gesendet – kommt gleich an.",
+    "testNone": "Kein Gerät angemeldet.",
+    "devices_one": "{{count}} Gerät bekommt Hinweise.",
+    "devices_other": "{{count}} Geräte bekommen Hinweise.",
+    "atStart": "Wenn ein Block beginnt",
+    "atStartHint": "„Jetzt: Training – bis 19:30“",
+    "lead": "Vorher Bescheid geben",
+    "leadOff": "Aus",
+    "ios1": "In Safari auf „Teilen“ tippen.",
+    "ios2": "„Zum Home-Bildschirm“ wählen.",
+    "ios3": "Tag vom Home-Bildschirm öffnen und hier einschalten.",
+    "state": {
+      "unsupported": "Dieser Browser kann keine Benachrichtigungen.",
+      "needs-install": "Auf dem iPhone gehen Hinweise nur, wenn Tag auf dem Home-Bildschirm liegt:",
+      "off": "Auf diesem Gerät aus.",
+      "on": "Auf diesem Gerät an. ✓",
+      "denied": "Blockiert – erlaube Benachrichtigungen in den Einstellungen des Browsers.",
+      "server-off": "Auf dem Server noch nicht eingerichtet."
+    }
   }
 }

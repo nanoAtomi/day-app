@@ -2,9 +2,10 @@
 # (.github/workflows/deploy.yml) - change it together with the code that needs it.
 #
 # Secrets are NOT here: set them once in the portal (Apps → Day → Setup → Variables).
-# A portal value overrides a value of the same name from this file. Day needs none yet;
-# Web Push (a later step) will add VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY (secret) and
-# VAPID_SUBJECT.
+# A portal value overrides a value of the same name from this file.
+#   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY (secret), VAPID_SUBJECT (mailto:...)  - Web Push for
+#   block notifications; without them the app runs, but notifications are off.
+#   How to make a key pair: docs/operations/deployment.md, "Notifications".
 #
 # The portal itself sets PUBLIC_URL, DATABASE_URL (database: true),
 # GATEWAY_SHARED_SECRET (gatewaySecret: true), PORTAL_URL and PORTAL_LOGOUT_URL.

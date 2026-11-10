@@ -15,6 +15,7 @@ const me: Me = {
   timezone: 'Europe/Berlin',
   delay_mode: 'fixed',
   notify_lead_minutes: null,
+  notify_start: true,
   portal_url: 'https://portal.example',
   logout_url: 'https://portal.example/logout',
   feedback_url: 'https://portal.example/feedback?app=day',

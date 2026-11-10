@@ -52,6 +52,8 @@ Database changes: change [backend/app/models.py](../backend/app/models.py), then
 | `DATABASE_URL` | set by the portal (`database: true`); defaults to `sqlite:///./day.db` |
 | `PORTAL_URL`, `PORTAL_LOGOUT_URL` | set by the portal; the "‹ Portal" chip and "Sign out" |
 | `DEV_USER` | user name in `dev` mode |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Web Push keys (portal variables); notifications are off without them |
+| `SCHEDULER` | `off` stops the notification scheduler (tests) |
 | `STATIC_DIR` | where the built frontend is (`/srv/static` in the image) |
 
 ## Docs

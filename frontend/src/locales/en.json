@@ -181,7 +181,7 @@
   },
   "settings": {
     "title": "Settings",
-    "lead": "Delay mode - soon notifications and calendars too."
+    "lead": "Delay mode and notifications."
   },
   "delay": {
     "title": "When a block runs over",
@@ -206,5 +206,30 @@
     "placeholder": "Add a subtask",
     "add": "Add subtask",
     "remove": "Remove \"{{title}}\""
+  },
+  "push": {
+    "title": "Notifications",
+    "enable": "Turn on for this device",
+    "disable": "Turn off",
+    "test": "Send a test",
+    "testSent": "Sent - it's on its way.",
+    "testNone": "No device signed up.",
+    "devices_one": "{{count}} device gets notices.",
+    "devices_other": "{{count}} devices get notices.",
+    "atStart": "When a block starts",
+    "atStartHint": "\"Now: Training - until 19:30\"",
+    "lead": "Give notice before",
+    "leadOff": "Off",
+    "ios1": "Tap \"Share\" in Safari.",
+    "ios2": "Choose \"Add to Home Screen\".",
+    "ios3": "Open Day from the home screen and turn it on here.",
+    "state": {
+      "unsupported": "This browser can't show notifications.",
+      "needs-install": "On iPhone, notices only work when Day is on the home screen:",
+      "off": "Off on this device.",
+      "on": "On for this device. ✓",
+      "denied": "Blocked - allow notifications in the browser's settings.",
+      "server-off": "Not set up on the server yet."
+    }
   }
 }

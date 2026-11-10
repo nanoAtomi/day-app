@@ -6,7 +6,7 @@ in the user's time zone, so a plan never shifts when the clocks change.
 """
 from datetime import date, datetime, timezone
 
-from sqlalchemy import JSON, Boolean, Date, DateTime, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import JSON, Boolean, Date, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .db import Base
@@ -40,6 +40,8 @@ class User(Base):
     timezone: Mapped[str] = mapped_column(String(64), default="Europe/Berlin")
     delay_mode: Mapped[str] = mapped_column(String(16), default="fixed")
     notify_lead_minutes: Mapped[int | None] = mapped_column(Integer)
+    # Push when a block starts (the advance notice above is separate).
+    notify_start: Mapped[bool] = mapped_column(Boolean, default=True)
     # The starter templates are created once; deleting them later must not bring them back.
     templates_seeded: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
@@ -142,3 +144,30 @@ class Subtask(Base):
     position: Mapped[int] = mapped_column(Integer, default=0)
 
     block: Mapped[Block] = relationship(back_populates="subtasks")
+
+
+class PushSubscription(Base):
+    """One per device/browser that turned notifications on (endpoint + keys from the browser)."""
+
+    __tablename__ = "push_subscriptions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    endpoint: Mapped[str] = mapped_column(Text, unique=True)
+    p256dh: Mapped[str] = mapped_column(String(255))
+    auth: Mapped[str] = mapped_column(String(255))
+    # Language the device's notifications are written in.
+    language: Mapped[str] = mapped_column(String(8), default="de")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class NotificationLog(Base):
+    """What was sent already - every notification goes out at most once."""
+
+    __tablename__ = "notification_log"
+    __table_args__ = (UniqueConstraint("user_id", "key"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    key: Mapped[str] = mapped_column(String(200))
+    sent_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
