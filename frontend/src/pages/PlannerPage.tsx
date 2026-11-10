@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useDay, type Day } from '../api/day';
 import { BlockSheet, type SheetTarget } from '../components/BlockSheet';
+import { DayTools } from '../components/DayTools';
 import { NowPanel, newBlockAt } from '../components/NowPanel';
 import { Timeline } from '../components/Timeline';
 import { linkButton, primaryButton } from '../components/ui';
@@ -70,6 +71,8 @@ export function PlannerPage({ view, timeZone }: { view: 'now' | 'day'; timeZone:
         <Loaded day={shown.data} error={shown.error}>
           {(day) => (
             <>
+              {/* The past stays as it was: no switching templates there. */}
+              <DayTools day={day} editable={date >= clock.date} />
               {day.blocks.length === 0 && <p className="mb-4 text-center text-sm text-slate-500 dark:text-slate-400">{t('day.emptyHint')}</p>}
               <Timeline
                 key={date}

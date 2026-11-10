@@ -17,14 +17,16 @@ def test_export_unknown_person_is_empty(client):
 
 def test_export_and_delete_only_touch_that_person(client):
     alice, bob = as_user("alice", "alice@example.com"), as_user("bob")
-    client.post("/api/days/2026-11-10/blocks", json={"start_minute": 420, "end_minute": 450, "title": "Frühstück", "category": "meal"}, headers=alice)
-    client.post("/api/days/2026-11-10/blocks", json={"start_minute": 540, "end_minute": 600, "title": "Bobs Block"}, headers=bob)
-    client.get("/api/days/2026-11-11", headers=alice)  # an empty day is not exported
+    client.post("/api/days/2020-01-07/blocks", json={"start_minute": 420, "end_minute": 450, "title": "Frühstück", "category": "meal"}, headers=alice)
+    client.post("/api/days/2020-01-07/blocks", json={"start_minute": 540, "end_minute": 600, "title": "Bobs Block"}, headers=bob)
+    client.get("/api/days/2020-01-08", headers=alice)  # an empty day is not exported
 
     data = client.get("/api/platform/users/alice/export", headers=PORTAL).json()
     assert data["user"]["email"] == "alice@example.com"
+    assert [t["name"] for t in data["templates"]] == ["Bürotag", "Homeoffice", "Wochenende", "Training"]
+    assert data["weekdays"]["0"] == "Bürotag"
     assert data["days"] == [{
-        "date": "2026-11-10", "template": None, "delay_mode": None,
+        "date": "2020-01-07", "template": None, "delay_mode": None,
         "blocks": [{"start": "07:00", "end": "07:30", "title": "Frühstück", "category": "meal",
                     "source": "manual", "status": "open", "subtasks": []}],
     }]
@@ -32,4 +34,4 @@ def test_export_and_delete_only_touch_that_person(client):
 
     assert client.delete("/api/platform/users/alice", headers=PORTAL).status_code == 204
     assert client.get("/api/platform/users/alice/export", headers=PORTAL).json() == {}
-    assert client.get("/api/days/2026-11-10", headers=bob).json()["blocks"][0]["title"] == "Bobs Block"
+    assert client.get("/api/days/2020-01-07", headers=bob).json()["blocks"][0]["title"] == "Bobs Block"

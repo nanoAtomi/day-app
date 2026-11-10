@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 from .config import settings
 from .db import get_db
 from .models import User, utcnow
+from .seed import seed_templates
 
 # Avoid a write on every request just to bump last_seen_at.
 _SEEN_RESOLUTION = timedelta(minutes=5)
@@ -58,6 +59,7 @@ def current_user(request: Request, db: Session = Depends(get_db)) -> User:
         user.display_name = name
         user.last_seen_at = now
         db.commit()
+    seed_templates(db, user)
     return user
 
 

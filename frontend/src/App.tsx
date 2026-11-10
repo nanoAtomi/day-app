@@ -5,9 +5,13 @@ import { ApiError } from './api/client';
 import { useMe } from './api/day';
 import { AppFooter } from './components/AppFooter';
 import { PlatformBar } from './components/PlatformBar';
-import { BottomNav } from './components/Shell';
+import { BottomNav, ViewLinks } from './components/Shell';
 import { ConfirmProvider } from './components/ui';
+import { MorePage } from './pages/MorePage';
 import { PlannerPage } from './pages/PlannerPage';
+import { TemplateEditorPage } from './pages/TemplateEditorPage';
+import { TemplatesPage } from './pages/TemplatesPage';
+import { WeekPage } from './pages/WeekPage';
 
 export function AppIcon() {
   return (
@@ -52,10 +56,16 @@ export function App() {
           feedbackUrl: me.data.feedback_url,
           view: me.data.view,
         }}
+        navLabel={t('nav.main')}
+        nav={<ViewLinks />}
       />
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 pt-5 pb-6 lg:py-8">
         <Routes>
           <Route path="/day" element={<PlannerPage view="day" timeZone={timeZone} />} />
+          <Route path="/week" element={<WeekPage timeZone={timeZone} />} />
+          <Route path="/templates" element={<TemplatesPage />} />
+          <Route path="/templates/:templateId" element={<TemplateEditorPage />} />
+          <Route path="/more" element={<MorePage />} />
           <Route path="*" element={<PlannerPage view="now" timeZone={timeZone} />} />
         </Routes>
         <AppFooter />

@@ -17,11 +17,11 @@ What the app is for and for whom - product decisions, kept current. Architecture
 | Sharing & roles | None - no shared days, no app roles |
 | Data | Days and time blocks (title, kind, start/end, status), subtasks, templates, settings. Personal, not sensitive. Export and delete through the portal ("Your data") |
 | Time | Time zone Europe/Berlin (per user, `users.timezone`); times are minutes after local midnight, a block ends at 24:00 at the latest |
-| Templates | A day is created from the weekday's template on first access - a copy, not a reference: changing the day never changes the template. Modules (e.g. training) are templates that can be inserted into any day |
+| Templates | A day is created from the weekday's template on first access - a copy, not a reference: changing the day never changes the template. Only from today on: past days start empty. The week view only previews days not opened yet, so a template change still reaches them. Modules (e.g. training) are templates inserted into any day at a chosen time; their blocks then count as the day's own. Every user gets the starter templates once (office day Mon-Fri, weekend Sat-Sun, home office, training) |
 | Running late | Delay mode `fixed` (blocks stay put) or `cascade` (a block running over pushes the following ones); default per user, overridable per day |
 | Categories | Meal, self-care, commute, work, chores, sport, free time, other - each with an emoji and a colour |
 | Devices | Phone and desktop; PWA (installable); Web Push for block starts later; offline not planned |
-| Views | Phone: bottom navigation Now · Day (later Week · More). Desktop: "Now" on the left, the day's timeline on the right |
+| Views | Phone and tablet: bottom navigation Now · Day · Week · More (templates; later statistics, settings). Desktop (from `lg`): top navigation Today · Week · Templates; "Now" on the left, the day's timeline on the right |
 | Languages | DE + EN (the app is called "Tag" in German) |
 | Platform | repo `nanoAtomi/day-app`, slug `day`, icon 🕘; portal link, sign-out, feedback; showcase on nicasso.de/apps/day |
 

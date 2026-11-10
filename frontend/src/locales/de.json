@@ -19,7 +19,11 @@
   "nav": {
     "main": "Ansichten",
     "now": "Jetzt",
-    "day": "Tag"
+    "day": "Tag",
+    "today": "Heute",
+    "week": "Woche",
+    "more": "Mehr",
+    "templates": "Vorlagen"
   },
   "time": {
     "h": "h",
@@ -51,7 +55,8 @@
     "previous": "Vorheriger Tag",
     "next": "Nächster Tag",
     "overlap": "Überschneidet sich",
-    "emptyHint": "Tippe auf eine Uhrzeit, um dort einen Block anzulegen."
+    "emptyHint": "Tippe auf eine Uhrzeit, um dort einen Block anzulegen.",
+    "template": "Vorlage für diesen Tag"
   },
   "block": {
     "new": "Neuer Block",
@@ -104,5 +109,73 @@
       "admin": "Admin",
       "user": "Nutzer"
     }
+  },
+  "week": {
+    "title": "KW {{week}}",
+    "previous": "Vorherige Woche",
+    "next": "Nächste Woche",
+    "thisWeek": "Diese Woche",
+    "noTemplate": "Ohne Vorlage",
+    "template": "Vorlage für {{day}}",
+    "open": "{{day}} öffnen",
+    "blocks_one": "{{count}} Block",
+    "blocks_other": "{{count}} Blöcke",
+    "switchTitle": "Vorlage wechseln?",
+    "switchText": "Die Blöcke der bisherigen Vorlage werden ersetzt – auch was du daran geändert hast. Eigene Blöcke und Bausteine bleiben.",
+    "switch": "Wechseln"
+  },
+  "templates": {
+    "title": "Vorlagen",
+    "lead": "Wie deine Tage normalerweise aussehen – und Bausteine wie Training.",
+    "empty": "Noch keine Vorlagen. Leg die erste an!",
+    "section": {
+      "day": "Tage",
+      "module": "Bausteine"
+    },
+    "summary_one": "{{count}} Block",
+    "summary_other": "{{count}} Blöcke",
+    "weekdays": "Wochentage für {{name}}",
+    "takenBy": "Gerade: {{name}}"
+  },
+  "template": {
+    "new": "Neue Vorlage",
+    "edit": "Bearbeiten",
+    "create": "Anlegen",
+    "kind": "Art",
+    "kinds": {
+      "day": "Ganzer Tag",
+      "module": "Baustein"
+    },
+    "kindHint": {
+      "day": "Für Wochentage – ein Tag startet als Kopie davon.",
+      "module": "Lässt sich in jeden Tag einfügen, z. B. Training."
+    },
+    "icon": "Icon",
+    "name": "Name",
+    "namePlaceholder": "z. B. Urlaubstag",
+    "color": "Farbe",
+    "colors": {
+      "blue": "Blau",
+      "teal": "Grün",
+      "amber": "Orange",
+      "rose": "Rosa",
+      "violet": "Lila",
+      "slate": "Grau"
+    },
+    "subtasks": "Unteraufgaben",
+    "subtasksPlaceholder": "Eine pro Zeile",
+    "deleteTitle": "Vorlage löschen?",
+    "deleteText": "„{{name}}“ verschwindet. Tage, die schon daraus entstanden sind, behalten ihre Blöcke.",
+    "notFound": "Vorlage nicht gefunden",
+    "moduleLead": "Baustein – einfügbar in jeden Tag.",
+    "usedOn": "Gilt für: {{days}}",
+    "unused": "Noch keinem Wochentag zugeordnet.",
+    "tapHint": "Tippe auf einen Block, um ihn zu ändern – oder auf eine freie Stelle für einen neuen."
+  },
+  "module": {
+    "insert": "Baustein",
+    "title": "Baustein einfügen",
+    "start": "Beginnt um",
+    "insertButton": "Einfügen"
   }
 }

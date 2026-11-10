@@ -40,6 +40,8 @@ class User(Base):
     timezone: Mapped[str] = mapped_column(String(64), default="Europe/Berlin")
     delay_mode: Mapped[str] = mapped_column(String(16), default="fixed")
     notify_lead_minutes: Mapped[int | None] = mapped_column(Integer)
+    # The starter templates are created once; deleting them later must not bring them back.
+    templates_seeded: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     last_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
@@ -67,7 +69,8 @@ class TemplateBlock(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     template_id: Mapped[int] = mapped_column(ForeignKey("templates.id", ondelete="CASCADE"), index=True)
-    # For a module: minutes after the point where it is inserted.
+    # Minutes after midnight. A module is inserted shifted as a whole, so that its first
+    # block starts at the chosen time.
     start_minute: Mapped[int] = mapped_column(Integer)
     duration_minutes: Mapped[int] = mapped_column(Integer)
     title: Mapped[str] = mapped_column(String(200))

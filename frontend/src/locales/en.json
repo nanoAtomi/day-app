@@ -19,7 +19,11 @@
   "nav": {
     "main": "Views",
     "now": "Now",
-    "day": "Day"
+    "day": "Day",
+    "today": "Today",
+    "week": "Week",
+    "more": "More",
+    "templates": "Templates"
   },
   "time": {
     "h": "h",
@@ -51,7 +55,8 @@
     "previous": "Previous day",
     "next": "Next day",
     "overlap": "Overlaps",
-    "emptyHint": "Tap a time to add a block there."
+    "emptyHint": "Tap a time to add a block there.",
+    "template": "Template for this day"
   },
   "block": {
     "new": "New block",
@@ -104,5 +109,73 @@
       "admin": "Admin",
       "user": "User"
     }
+  },
+  "week": {
+    "title": "Week {{week}}",
+    "previous": "Previous week",
+    "next": "Next week",
+    "thisWeek": "This week",
+    "noTemplate": "No template",
+    "template": "Template for {{day}}",
+    "open": "Open {{day}}",
+    "blocks_one": "{{count}} block",
+    "blocks_other": "{{count}} blocks",
+    "switchTitle": "Switch template?",
+    "switchText": "The old template's blocks are replaced - including your changes to them. Your own blocks and modules stay.",
+    "switch": "Switch"
+  },
+  "templates": {
+    "title": "Templates",
+    "lead": "What your days usually look like - and modules like training.",
+    "empty": "No templates yet. Create the first one!",
+    "section": {
+      "day": "Days",
+      "module": "Modules"
+    },
+    "summary_one": "{{count}} block",
+    "summary_other": "{{count}} blocks",
+    "weekdays": "Weekdays for {{name}}",
+    "takenBy": "Currently: {{name}}"
+  },
+  "template": {
+    "new": "New template",
+    "edit": "Edit",
+    "create": "Create",
+    "kind": "Kind",
+    "kinds": {
+      "day": "Whole day",
+      "module": "Module"
+    },
+    "kindHint": {
+      "day": "For weekdays - a day starts as a copy of it.",
+      "module": "Fits into any day, e.g. training."
+    },
+    "icon": "Icon",
+    "name": "Name",
+    "namePlaceholder": "e.g. Holiday",
+    "color": "Colour",
+    "colors": {
+      "blue": "Blue",
+      "teal": "Green",
+      "amber": "Orange",
+      "rose": "Pink",
+      "violet": "Purple",
+      "slate": "Grey"
+    },
+    "subtasks": "Subtasks",
+    "subtasksPlaceholder": "One per line",
+    "deleteTitle": "Delete template?",
+    "deleteText": "\"{{name}}\" disappears. Days already made from it keep their blocks.",
+    "notFound": "Template not found",
+    "moduleLead": "Module - fits into any day.",
+    "usedOn": "Used on: {{days}}",
+    "unused": "Not assigned to a weekday yet.",
+    "tapHint": "Tap a block to change it - or a free spot for a new one."
+  },
+  "module": {
+    "insert": "Module",
+    "title": "Insert a module",
+    "start": "Starts at",
+    "insertButton": "Insert"
   }
 }
