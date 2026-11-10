@@ -9,7 +9,7 @@ import i18n from '../i18n';
 
 const me: Me = {
   id: 1, username: 'alice', email: 'alice@example.com', display_name: 'Alice', timezone: 'Europe/Berlin', delay_mode: 'fixed',
-  notify_lead_minutes: null, portal_url: null, logout_url: null, feedback_url: null, view: null,
+  notify_lead_minutes: null, notify_start: true, portal_url: null, logout_url: null, feedback_url: null, view: null,
 };
 
 const office: Template = {

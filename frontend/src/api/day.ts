@@ -9,6 +9,7 @@ export interface Me {
   timezone: string;
   delay_mode: 'fixed' | 'cascade';
   notify_lead_minutes: number | null;
+  notify_start: boolean;
   portal_url: string | null;
   logout_url: string | null;
   feedback_url: string | null;
@@ -243,7 +244,7 @@ export function useSetDayDelayMode(date: string) {
 export function useUpdateMe() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (change: Partial<Pick<Me, 'delay_mode' | 'notify_lead_minutes' | 'timezone'>>) => api<Me>('/api/me', { method: 'PATCH', body: change }),
+    mutationFn: (change: Partial<Pick<Me, 'delay_mode' | 'notify_lead_minutes' | 'notify_start' | 'timezone'>>) => api<Me>('/api/me', { method: 'PATCH', body: change }),
     onSuccess: (me) => queryClient.setQueryData(['me'], me),
     // Days follow the default unless they have their own.
     onSettled: () => void queryClient.invalidateQueries({ queryKey: ['day'] }),
