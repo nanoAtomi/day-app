@@ -290,3 +290,19 @@ export function useDeleteSubtask(date: string) {
     (day, { id, blockId }) => withSubtasks(day, blockId, (list) => list.filter((s) => s.id !== id)),
   );
 }
+
+/**
+ * Undo of a delete: the block comes back with its times, kind, status and subtasks
+ * (as a block of its own - it no longer goes with a template switch).
+ */
+export async function restoreBlock(date: string, block: Block): Promise<void> {
+  const created = await api<Block>(`/api/days/${date}/blocks`, {
+    method: 'POST',
+    body: { start_minute: block.start_minute, end_minute: block.end_minute, title: block.title, category: block.category },
+  });
+  if (block.status !== 'open') await api(`/api/blocks/${created.id}`, { method: 'PATCH', body: { status: block.status } });
+  for (const s of block.subtasks) {
+    const sub = await api<Subtask>(`/api/blocks/${created.id}/subtasks`, { method: 'POST', body: { title: s.title } });
+    if (s.done) await api(`/api/subtasks/${sub.id}`, { method: 'PATCH', body: { done: true } });
+  }
+}

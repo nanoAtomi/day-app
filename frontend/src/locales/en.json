@@ -14,7 +14,8 @@
     "ok": "OK",
     "save": "Save",
     "delete": "Delete",
-    "add": "Add"
+    "add": "Add",
+    "undo": "Undo"
   },
   "nav": {
     "main": "Views",
@@ -73,8 +74,7 @@
     "needTitle": "Give the block a name.",
     "badTimes": "The end has to be at least 5 minutes after the start.",
     "fromCalendar": "From your calendar \"{{name}}\" - change the appointment there.",
-    "deleteTitle": "Delete block?",
-    "deleteText": "\"{{title}}\" disappears from this day."
+    "deleted": "\"{{title}}\" deleted."
   },
   "status": {
     "open": "Open",

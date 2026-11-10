@@ -161,3 +161,71 @@ export function useConfirm() {
   if (!confirm) throw new Error('useConfirm needs a ConfirmProvider');
   return confirm;
 }
+
+// ------------------------------------------------------------- toast
+
+interface Toast {
+  message: string;
+  action?: { label: string; run: () => void };
+}
+
+const ToastContext = createContext<((toast: Toast) => void) | null>(null);
+
+const TOAST_MS = 6000;
+
+/**
+ * A short note at the bottom - "Block deleted · Undo". Results show briefly where the
+ * action was (UI rules), and an undo makes a quick delete safe without asking first.
+ */
+export function ToastProvider({ children }: { children: ReactNode }) {
+  const [toast, setToast] = useState<Toast | null>(null);
+  const timer = useRef<number | undefined>(undefined);
+  const show = useCallback((next: Toast) => {
+    window.clearTimeout(timer.current);
+    setToast(next);
+    timer.current = window.setTimeout(() => setToast(null), TOAST_MS);
+  }, []);
+  useEffect(() => () => window.clearTimeout(timer.current), []);
+  return (
+    <ToastContext.Provider value={show}>
+      {children}
+      {toast &&
+        createPortal(
+          <div role="status" className="dlg-in fixed inset-x-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-50 mx-auto flex max-w-md items-center gap-3 rounded-2xl bg-ink px-4 py-3 text-sm text-canvas shadow-2xl lg:bottom-8">
+            <span className="min-w-0 flex-1">{toast.message}</span>
+            {toast.action && (
+              <button
+                type="button"
+                onClick={() => {
+                  toast.action?.run();
+                  setToast(null);
+                }}
+                className="min-h-9 shrink-0 rounded-full px-3 font-semibold text-brand hover:bg-white/10"
+              >
+                {toast.action.label}
+              </button>
+            )}
+          </div>,
+          document.body,
+        )}
+    </ToastContext.Provider>
+  );
+}
+
+export function useToast() {
+  const show = useContext(ToastContext);
+  if (!show) throw new Error('useToast needs a ToastProvider');
+  return show;
+}
+
+/** Delete: a soft red pill with a bin - clear, but not shouting. */
+export const deleteButton =
+  'inline-flex min-h-11 items-center gap-2 rounded-full bg-red-50 px-4 text-sm font-semibold text-red-700 transition hover:bg-red-100 active:scale-[0.98] dark:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-500/20';
+
+export function BinIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-[18px]" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3" />
+    </svg>
+  );
+}

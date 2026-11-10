@@ -2,7 +2,7 @@ import { useState, type FormEvent, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CATEGORIES, look } from '../lib/categories';
 import { DAY_MINUTES, formatMinute, parseTime } from '../lib/time';
-import { autoFocusText, field, fieldLabel, primaryButton, secondaryButton } from './ui';
+import { autoFocusText, BinIcon, deleteButton, field, fieldLabel, primaryButton, secondaryButton } from './ui';
 
 const MIN_MINUTES = 5;
 
@@ -87,25 +87,17 @@ export function BlockForm({
         </label>
       </div>
 
-      <fieldset>
-        <legend className={fieldLabel}>{t('block.category')}</legend>
-        <div className="mt-1.5 grid grid-cols-4 gap-2">
+      {/* Set once and rarely changed: one select, not a wall of boxes (UI rules). */}
+      <label className={fieldLabel}>
+        {t('block.category')}
+        <select className={`${field} mt-1.5`} value={category} onChange={(e) => setCategory(e.target.value)}>
           {CATEGORIES.map((c) => (
-            <button
-              key={c}
-              type="button"
-              aria-pressed={c === category}
-              onClick={() => setCategory(c)}
-              className={`flex min-h-16 min-w-0 flex-col items-center justify-center gap-1 rounded-2xl border px-1 text-xs transition active:scale-95 ${
-                c === category ? 'border-brand bg-brand/10 font-semibold text-ink ring-2 ring-brand/30' : 'border-line text-slate-600 hover:bg-ink/5 dark:text-slate-300 dark:hover:bg-white/5'
-              }`}
-            >
-              <span aria-hidden className="text-xl">{look(c).icon}</span>
-              <span className="max-w-full truncate">{t(`category.${c}`)}</span>
-            </button>
+            <option key={c} value={c}>
+              {look(c).icon} {t(`category.${c}`)}
+            </option>
           ))}
-        </div>
-      </fieldset>
+        </select>
+      </label>
 
       {withSubtasks && (
         <label className={fieldLabel}>
@@ -120,7 +112,8 @@ export function BlockForm({
 
       <div className="flex items-center justify-between gap-2 pt-1">
         {onDelete ? (
-          <button type="button" onClick={onDelete} className="min-h-11 rounded-full px-3 text-sm font-medium text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40">
+          <button type="button" onClick={onDelete} className={deleteButton}>
+            <BinIcon />
             {t('common.delete')}
           </button>
         ) : (

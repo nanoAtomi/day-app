@@ -1,9 +1,10 @@
 import { useTranslation } from 'react-i18next';
-import { useCreateBlock, useDay, useDeleteBlock, useUpdateBlock, type Block, type BlockStatus } from '../api/day';
+import { useQueryClient } from '@tanstack/react-query';
+import { restoreBlock, useCreateBlock, useDay, useDeleteBlock, useUpdateBlock, type Block, type BlockStatus } from '../api/day';
 import { formatMinute } from '../lib/time';
 import { BlockForm } from './BlockForm';
 import { SubtaskList } from './SubtaskList';
-import { Dialog, fieldLabel, useConfirm } from './ui';
+import { Dialog, fieldLabel, useToast } from './ui';
 
 export type SheetTarget = { block: Block } | { start: number; end: number };
 
@@ -12,7 +13,8 @@ const STATUSES: BlockStatus[] = ['open', 'done', 'skipped'];
 /** Add a block to a day, or change one: title, category, start and end. Calendar blocks only show. */
 export function BlockSheet({ date, target, onClose }: { date: string; target: SheetTarget; onClose: () => void }) {
   const { t } = useTranslation();
-  const confirm = useConfirm();
+  const toast = useToast();
+  const queryClient = useQueryClient();
   const opened = 'block' in target ? target.block : null;
   // Subtasks change while the sheet is open: always show the day's current copy of the block.
   const day = useDay(date);
@@ -38,13 +40,21 @@ export function BlockSheet({ date, target, onClose }: { date: string; target: Sh
     onClose();
   };
 
-  const del = async () => {
+  // No question first: the toast's "Undo" brings it back.
+  const del = () => {
     if (!existing) return;
-    const ok = await confirm({ title: t('block.deleteTitle'), message: t('block.deleteText', { title: existing.title }), confirmLabel: t('common.delete'), danger: true });
-    if (!ok) return;
-    remove.mutate(existing.id);
+    const gone = existing;
+    remove.mutate(gone.id);
     onClose();
+    toast({
+      message: t('block.deleted', { title: gone.title }),
+      action: {
+        label: t('common.undo'),
+        run: () => void restoreBlock(date, gone).finally(() => queryClient.invalidateQueries({ queryKey: ['day', date] })),
+      },
+    });
   };
+
 
   return (
     <Dialog title={existing ? t('block.edit') : t('block.new')} onClose={onClose}>
@@ -52,7 +62,7 @@ export function BlockSheet({ date, target, onClose }: { date: string; target: Sh
         initial={existing ? { title: existing.title, category: existing.category, start_minute: existing.start_minute, end_minute: existing.end_minute } : { title: '', category: 'other', start_minute: 'start' in target ? target.start : 0, end_minute: 'end' in target ? target.end : 60 }}
         isNew={!existing}
         onCancel={onClose}
-        onDelete={existing ? () => void del() : undefined}
+        onDelete={existing ? del : undefined}
         onSubmit={(values) => {
           if (existing) update.mutate({ id: existing.id, ...values });
           else create.mutate(values);

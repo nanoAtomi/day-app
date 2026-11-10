@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useCreateTemplate, useDeleteTemplate, useUpdateTemplate, type Template, type TemplateKind } from '../api/day';
 import { gradient, TEMPLATE_COLORS } from '../lib/templates';
-import { autoFocusText, Dialog, field, fieldLabel, primaryButton, secondaryButton, useConfirm } from './ui';
+import { autoFocusText, BinIcon, deleteButton, Dialog, field, fieldLabel, primaryButton, secondaryButton, useConfirm } from './ui';
 
 /** Create a template, or rename one: name, icon, colour - and for a new one, day or module. */
 export function TemplateSheet({ template, onClose, onCreated, onDeleted }: { template?: Template; onClose: () => void; onCreated?: (t: Template) => void; onDeleted?: () => void }) {
@@ -83,7 +83,8 @@ export function TemplateSheet({ template, onClose, onCreated, onDeleted }: { tem
         </fieldset>
         <div className="flex items-center justify-between gap-2 pt-1">
           {template ? (
-            <button type="button" onClick={() => void del()} className="min-h-11 rounded-full px-3 text-sm font-medium text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40">
+            <button type="button" onClick={() => void del()} className={deleteButton}>
+              <BinIcon />
               {t('common.delete')}
             </button>
           ) : (

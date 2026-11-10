@@ -67,7 +67,7 @@ export function PlannerPage({ view, timeZone }: { view: 'now' | 'day'; timeZone:
               {t('day.toToday')}
             </Link>
           )}
-          <button type="button" aria-label={t('block.new')} onClick={() => open(date)(newBlockAt(isToday ? clock.minute : 8 * 60))} className={`${primaryButton} size-11 shrink-0 px-0 text-xl`}>
+          <button type="button" aria-label={t('block.new')} onClick={() => open(date)(newBlockAt(isToday ? clock.minute : 8 * 60, shown.data?.blocks ?? []))} className={`${primaryButton} size-11 shrink-0 px-0 text-xl`}>
             +
           </button>
         </div>
@@ -85,6 +85,7 @@ export function PlannerPage({ view, timeZone }: { view: 'now' | 'day'; timeZone:
                 onOpen={open(date)}
                 onChange={(block, start, end) => update.mutate({ id: block.id, start_minute: start, end_minute: end })}
                 scrollKey={location.key}
+                pushesOn={day.delay_mode === 'cascade'}
               />
             </>
           )}

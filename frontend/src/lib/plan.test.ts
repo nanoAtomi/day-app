@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Block } from '../api/day';
-import { dragTimes, nowAndNext, placeBlocks } from './plan';
+import { clampEnd, dragTimes, fitEnd, nowAndNext, placeBlocks } from './plan';
 
 let id = 0;
 const block = (start: number, end: number, extra: Partial<Block> = {}): Block => ({
@@ -72,5 +72,23 @@ describe('dragTimes', () => {
     expect(dragTimes('resize', 420, 450, 31)).toEqual({ start: 420, end: 480 });
     expect(dragTimes('resize', 420, 450, -60)).toEqual({ start: 420, end: 425 });
     expect(dragTimes('resize', 1380, 1410, 90)).toEqual({ start: 1380, end: 1440 });
+  });
+});
+
+describe('fitting new and longer blocks', () => {
+  it('ends a new block where the next one begins', () => {
+    const lunch = block(720, 780);
+    expect(fitEnd([lunch], 690)).toBe(720); // 11:30 + 1 h would run into lunch at 12:00
+    expect(fitEnd([lunch], 600)).toBe(660); // room for the whole hour
+    expect(fitEnd([lunch], 718)).toBe(723); // at least 5 minutes
+    expect(fitEnd([], 1410)).toBe(1440);
+  });
+
+  it('stops pulling at the next block', () => {
+    const evening = block(1260, 1380);
+    const late = block(1380, 1440);
+    expect(clampEnd([evening, late], evening, 1440)).toBe(1380);
+    expect(clampEnd([evening, late], evening, 1350)).toBe(1350);
+    expect(clampEnd([evening], evening, 1440)).toBe(1440);
   });
 });
