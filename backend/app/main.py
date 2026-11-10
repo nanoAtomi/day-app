@@ -9,8 +9,8 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from . import platform_data
-from .api import days, me, subtasks, templates
+from . import notify, platform_data
+from .api import days, me, push, subtasks, templates
 from .config import settings
 from .db import run_migrations
 
@@ -27,7 +27,14 @@ async def lifespan(app: FastAPI):
     run_migrations()
     if settings.auth_mode == "dev":
         log.warning("AUTH_MODE=dev - every request is user '%s'. Never use this on a server.", settings.dev_user)
+    if not settings.push_enabled:
+        log.warning("VAPID keys not set - push notifications are off.")
+    scheduler = notify.Scheduler() if settings.scheduler_enabled else None
+    if scheduler:
+        scheduler.start()
     yield
+    if scheduler:
+        scheduler.stop()
 
 
 app = FastAPI(title="Day", lifespan=lifespan, docs_url="/api/docs", openapi_url="/api/openapi.json", redoc_url=None)
@@ -72,6 +79,7 @@ app.include_router(me.router)
 app.include_router(days.router)
 app.include_router(templates.router)
 app.include_router(subtasks.router)
+app.include_router(push.router)
 app.include_router(platform_data.router)  # export + delete for the portal (contract.md, "Your data")
 
 

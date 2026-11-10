@@ -23,10 +23,21 @@ class Settings:
     portal_url: str = field(default_factory=lambda: _env("PORTAL_URL"))
     portal_logout_url: str = field(default_factory=lambda: _env("PORTAL_LOGOUT_URL"))
 
+    # Web Push (portal secret variables). Without keys, push is simply unavailable.
+    vapid_public_key: str = field(default_factory=lambda: _env("VAPID_PUBLIC_KEY"))
+    vapid_private_key: str = field(default_factory=lambda: _env("VAPID_PRIVATE_KEY"))
+    vapid_subject: str = field(default_factory=lambda: _env("VAPID_SUBJECT", "mailto:admin@nicasso.de"))
+    # Background scheduler (block notifications); off in tests.
+    scheduler_enabled: bool = field(default_factory=lambda: _env("SCHEDULER", "on").lower() != "off")
+
     # Built React app (frontend/dist); copied to /srv/static in the image.
     static_dir: Path = field(
         default_factory=lambda: Path(_env("STATIC_DIR", str(Path(__file__).resolve().parents[2] / "frontend" / "dist")))
     )
+
+    @property
+    def push_enabled(self) -> bool:
+        return bool(self.vapid_public_key and self.vapid_private_key)
 
     def __post_init__(self) -> None:
         if self.auth_mode not in ("gateway", "dev"):
