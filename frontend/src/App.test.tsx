@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -69,6 +69,11 @@ describe('App', () => {
         requests.push({ method, url, body });
         if (url === '/api/me') return Response.json(me);
         if (url.startsWith('/api/days/')) return Response.json({ ...day, date: url.slice('/api/days/'.length) });
+        if (url === '/api/templates') return Response.json([]);
+        if (/^\/api\/days\/[\d-]+$/.test(url) && method === 'PATCH') {
+          day = { ...day, delay_mode: body.delay_mode ?? 'fixed', delay_mode_override: body.delay_mode };
+          return Response.json(day);
+        }
         const match = /^\/api\/blocks\/(\d+)$/.exec(url);
         if (match && method === 'PATCH') {
           day = { ...day, blocks: day.blocks.map((b) => (b.id === Number(match[1]) ? { ...b, ...body } : b)) };
@@ -116,5 +121,41 @@ describe('App', () => {
     renderApp('/day?date=2026-11-12');
     expect(await screen.findByRole('heading', { name: /12\. November/ })).toBeInTheDocument();
     expect(requests.some((r) => r.url === '/api/days/2026-11-12')).toBe(true);
+  });
+
+  it('moves a block by dragging and pulls its end', async () => {
+    renderApp('/day');
+    const commute = (await screen.findAllByRole('button', { name: /Arbeitsweg/ })).at(-1)!;
+    // An hour is 64 px: drag 64 px down = one hour later.
+    fireEvent.pointerDown(commute, { pointerId: 1, pointerType: 'mouse', button: 0, clientY: 100 });
+    fireEvent.pointerMove(window, { pointerId: 1, clientY: 164 });
+    fireEvent.pointerUp(window, { pointerId: 1, clientY: 164 });
+    await waitFor(() => expect(requests).toContainEqual({ method: 'PATCH', url: '/api/blocks/3', body: { start_minute: 540, end_minute: 600 } }));
+
+    const bath = (await screen.findAllByRole('button', { name: /Bad\/Anziehen/ })).at(-1)!;
+    const edge = bath.querySelector('[data-resize]')!;
+    fireEvent.pointerDown(edge, { pointerId: 2, pointerType: 'touch', button: 0, clientY: 200 });
+    fireEvent.pointerMove(window, { pointerId: 2, clientY: 216 });
+    fireEvent.pointerUp(window, { pointerId: 2, clientY: 216 });
+    await waitFor(() => expect(requests).toContainEqual({ method: 'PATCH', url: '/api/blocks/2', body: { start_minute: 450, end_minute: 495 } }));
+  });
+
+  it('switches the day to pushing back', async () => {
+    const user = userEvent.setup();
+    renderApp('/day');
+    await user.click(await screen.findByRole('button', { name: 'Fest' }));
+    await waitFor(() => expect(requests).toContainEqual({ method: 'PATCH', url: '/api/days/2026-11-10', body: { delay_mode: 'cascade' } }));
+  });
+
+  it('keeps the keyboard closed on phones when adding a block', async () => {
+    document.documentElement.classList.add('phone');
+    try {
+      day = { ...day, blocks: [] };
+      renderApp();
+      await userEvent.setup().click(await screen.findByRole('button', { name: 'Ersten Block anlegen' }));
+      expect(await screen.findByRole('textbox', { name: 'Was steht an?' })).not.toHaveFocus();
+    } finally {
+      document.documentElement.classList.remove('phone');
+    }
   });
 });

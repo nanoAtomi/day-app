@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useInsertModule, useSetDayTemplate, useTemplates, type Day, type Template } from '../api/day';
+import { useInsertModule, useMe, useSetDayDelayMode, useSetDayTemplate, useTemplates, type Day, type Template } from '../api/day';
 import { TemplateIcon } from '../lib/templates';
 import { formatMinute, parseTime } from '../lib/time';
 import { Dialog, field, fieldLabel, primaryButton, secondaryButton, useConfirm } from './ui';
@@ -11,6 +11,8 @@ export function DayTools({ day, editable }: { day: Day; editable: boolean }) {
   const confirm = useConfirm();
   const templates = useTemplates();
   const setTemplate = useSetDayTemplate(day.date);
+  const setDelay = useSetDayDelayMode(day.date);
+  const defaultMode = useMe().data?.delay_mode ?? 'fixed';
   const [inserting, setInserting] = useState(false);
   const all = templates.data ?? [];
   const dayTemplates = all.filter((x) => x.kind === 'day');
@@ -37,6 +39,22 @@ export function DayTools({ day, editable }: { day: Day; editable: boolean }) {
           ))}
         </select>
       </label>
+      <button
+        type="button"
+        disabled={!editable}
+        aria-pressed={day.delay_mode === 'cascade'}
+        title={t(`delay.hint.${day.delay_mode}`)}
+        aria-label={t(`delay.name.${day.delay_mode}`)}
+        onClick={() => {
+          const next = day.delay_mode === 'cascade' ? 'fixed' : 'cascade';
+          // Matching the default again: follow it (a later change of the default applies).
+          setDelay.mutate(next === defaultMode ? null : next);
+        }}
+        className={`${secondaryButton} min-h-10 shrink-0 px-3 ${day.delay_mode === 'cascade' ? 'border-brand/40 bg-brand/10 text-brand' : ''}`}
+      >
+        <span aria-hidden>{day.delay_mode === 'cascade' ? '⏩' : '⏸'}</span>
+        <span aria-hidden className="ml-1.5 max-sm:hidden">{t(`delay.name.${day.delay_mode}`)}</span>
+      </button>
       {modules.length > 0 && (
         <button type="button" className={`${secondaryButton} min-h-10 shrink-0 px-3`} onClick={() => setInserting(true)}>
           + {t('module.insert')}

@@ -36,6 +36,12 @@ export function Card({ title, children, className = '' }: { title?: string; chil
 /** A phone, even one showing the desktop site (class set by public/theme-init.js). */
 export const phoneDevice = () => document.documentElement.classList.contains('phone');
 
+/**
+ * Text fields focus themselves only with a mouse: on touch screens the keyboard would pop
+ * up at once and push the sheet out of place - people tap the field when they want to type.
+ */
+export const autoFocusText = () => !phoneDevice() && (window.matchMedia?.('(pointer: fine)').matches ?? true);
+
 /** Phones (below sm, or a phone in desktop mode): true while the screen is that narrow. */
 export function usePhone(): boolean {
   const query = typeof window.matchMedia === 'function' ? window.matchMedia('(max-width: 639px)') : null;

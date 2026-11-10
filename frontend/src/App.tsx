@@ -1,14 +1,16 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Route, Routes } from 'react-router-dom';
+import { Link, Route, Routes } from 'react-router-dom';
 import { ApiError } from './api/client';
 import { useMe } from './api/day';
 import { AppFooter } from './components/AppFooter';
-import { PlatformBar } from './components/PlatformBar';
+import { Icon } from './components/AccountMenu';
+import { menuIconClass, menuItemClass, PlatformBar } from './components/PlatformBar';
 import { BottomNav, ViewLinks } from './components/Shell';
 import { ConfirmProvider } from './components/ui';
 import { MorePage } from './pages/MorePage';
 import { PlannerPage } from './pages/PlannerPage';
+import { SettingsPage } from './pages/SettingsPage';
 import { TemplateEditorPage } from './pages/TemplateEditorPage';
 import { TemplatesPage } from './pages/TemplatesPage';
 import { WeekPage } from './pages/WeekPage';
@@ -56,6 +58,12 @@ export function App() {
           feedbackUrl: me.data.feedback_url,
           view: me.data.view,
         }}
+        menuItems={
+          <Link to="/settings" className={menuItemClass}>
+            <Icon name="cog" className={menuIconClass} />
+            {t('settings.title')}
+          </Link>
+        }
         navLabel={t('nav.main')}
         nav={<ViewLinks />}
       />
@@ -66,6 +74,7 @@ export function App() {
           <Route path="/templates" element={<TemplatesPage />} />
           <Route path="/templates/:templateId" element={<TemplateEditorPage />} />
           <Route path="/more" element={<MorePage />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<PlannerPage view="now" timeZone={timeZone} />} />
         </Routes>
         <AppFooter />

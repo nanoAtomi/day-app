@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Block } from '../api/day';
-import { nowAndNext, placeBlocks } from './plan';
+import { dragTimes, nowAndNext, placeBlocks } from './plan';
 
 let id = 0;
 const block = (start: number, end: number, extra: Partial<Block> = {}): Block => ({
@@ -58,5 +58,19 @@ describe('nowAndNext', () => {
     const work = block(540, 1020);
     const meeting = block(600, 660);
     expect(nowAndNext([work, meeting], 610)).toEqual({ current: meeting, next: null });
+  });
+});
+
+describe('dragTimes', () => {
+  it('moves a block as a whole, snapped to 5 minutes and within the day', () => {
+    expect(dragTimes('move', 420, 450, 17)).toEqual({ start: 435, end: 465 });
+    expect(dragTimes('move', 420, 450, -999)).toEqual({ start: 0, end: 30 });
+    expect(dragTimes('move', 1380, 1410, 120)).toEqual({ start: 1410, end: 1440 });
+  });
+
+  it('pulls the end, never shorter than 5 minutes or past midnight', () => {
+    expect(dragTimes('resize', 420, 450, 31)).toEqual({ start: 420, end: 480 });
+    expect(dragTimes('resize', 420, 450, -60)).toEqual({ start: 420, end: 425 });
+    expect(dragTimes('resize', 1380, 1410, 90)).toEqual({ start: 1380, end: 1440 });
   });
 });

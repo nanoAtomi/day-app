@@ -62,3 +62,19 @@ export function nowAndNext(blocks: Block[], minute: number): { current: Block | 
   const next = open.find((b) => b !== current && b.start_minute > minute) ?? null;
   return { current, next };
 }
+
+export type DragMode = 'move' | 'resize';
+const MIN_MINUTES = 5;
+const DAY = 24 * 60;
+
+/**
+ * Where a dragged block lands: moved as a whole (its length stays, it stays within the
+ * day) or its end pulled (at least 5 minutes long, 24:00 at the latest). Snaps to 5 minutes.
+ */
+export function dragTimes(mode: DragMode, start: number, end: number, deltaMinutes: number): { start: number; end: number } {
+  const delta = Math.round(deltaMinutes / 5) * 5;
+  if (mode === 'resize') return { start, end: Math.min(DAY, Math.max(start + MIN_MINUTES, end + delta)) };
+  const length = end - start;
+  const moved = Math.min(DAY - length, Math.max(0, start + delta));
+  return { start: moved, end: moved + length };
+}

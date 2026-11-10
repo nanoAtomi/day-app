@@ -230,3 +230,22 @@ export function useInsertModule(date: string) {
     api<Day>(`/api/days/${date}/modules`, { method: 'POST', body: { template_id: templateId, start_minute: start } }),
   );
 }
+
+// ------------------------------------------------------------- delay mode
+
+export type DelayMode = 'fixed' | 'cascade';
+
+/** The day's own delay mode; null follows the user's default. */
+export function useSetDayDelayMode(date: string) {
+  return useWholeDayMutation(date, (mode: DelayMode | null) => api<Day>(`/api/days/${date}`, { method: 'PATCH', body: { delay_mode: mode } }));
+}
+
+export function useUpdateMe() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (change: Partial<Pick<Me, 'delay_mode' | 'notify_lead_minutes' | 'timezone'>>) => api<Me>('/api/me', { method: 'PATCH', body: change }),
+    onSuccess: (me) => queryClient.setQueryData(['me'], me),
+    // Days follow the default unless they have their own.
+    onSettled: () => void queryClient.invalidateQueries({ queryKey: ['day'] }),
+  });
+}

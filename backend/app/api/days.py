@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 
 from ..auth import current_user
 from ..db import get_db
-from ..models import BLOCK_STATUSES, CATEGORIES, Block, Day, Subtask, Template, User, WeekdayAssignment, utcnow
+from ..models import BLOCK_STATUSES, CATEGORIES, DELAY_MODES, Block, Day, Subtask, Template, User, WeekdayAssignment, utcnow
 from .templates import own_template
 
 router = APIRouter(prefix="/api", tags=["days"])
@@ -84,6 +84,11 @@ class ModuleIn(BaseModel):
     start_minute: int = Field(ge=0, lt=DAY_MINUTES)
 
 
+class DayUpdate(BaseModel):
+    # fixed / cascade, or None for the user's default.
+    delay_mode: str | None = None
+
+
 class BlockUpdate(BlockTimes):
     title: str | None = Field(default=None, min_length=1, max_length=200)
     category: str | None = None
@@ -125,8 +130,13 @@ def _day(day: Day, user: User) -> DayOut:
     )
 
 
+def local_now(user: User) -> datetime:
+    """Now on the user's wall clock (tests replace it)."""
+    return datetime.now(ZoneInfo(user.timezone))
+
+
 def today(user: User) -> date:
-    return datetime.now(ZoneInfo(user.timezone)).date()
+    return local_now(user).date()
 
 
 def weekday_template(db: Session, user: User, on: date) -> Template | None:
@@ -250,6 +260,18 @@ def insert_module(on: date, body: ModuleIn, user: User = Depends(current_user), 
     return _day(day, user)
 
 
+@router.patch("/days/{on}", response_model=DayOut)
+def update_day(on: date, body: DayUpdate, user: User = Depends(current_user), db: Session = Depends(get_db)) -> DayOut:
+    day = get_or_create_day(db, user, on)
+    if "delay_mode" in body.model_fields_set:
+        if body.delay_mode is not None and body.delay_mode not in DELAY_MODES:
+            raise HTTPException(status_code=422, detail=f"delay_mode must be one of {', '.join(DELAY_MODES)}")
+        day.delay_mode = body.delay_mode
+    db.commit()
+    db.refresh(day)
+    return _day(day, user)
+
+
 @router.get("/days/{on}", response_model=DayOut)
 def get_day(on: date, user: User = Depends(current_user), db: Session = Depends(get_db)) -> DayOut:
     return _day(get_or_create_day(db, user, on), user)
@@ -296,12 +318,44 @@ def update_block(block_id: int, body: BlockUpdate, user: User = Depends(current_
         block.title = changes["title"].strip()
     if "category" in changes:
         block.category = changes["category"]
+    old_start, old_end = block.start_minute, block.end_minute
     block.start_minute, block.end_minute = start, end
     if "status" in changes:
         _set_status(block, changes["status"])
+
+    day = block.day
+    if (day.delay_mode or user.delay_mode) == "cascade" and block.source != "calendar":
+        if start == old_start and end > old_end:
+            # Running over (+15 min, the edge pulled down): what comes after moves back.
+            push_following(day, block, old_end, end)
+        elif changes.get("status") == "done" and day.date == today(user):
+            # Done late: the rest of the day starts from now.
+            now = local_now(user)
+            minute = now.hour * 60 + now.minute
+            if minute > end:
+                push_following(day, block, end, minute)
     db.commit()
     db.refresh(block)
     return _block(block)
+
+
+def push_following(day: Day, block: Block, old_end: int, new_end: int) -> None:
+    """Delay mode `cascade`: the open blocks after `block` move back just as far as they
+    have to so nothing overlaps - a gap in the plan absorbs the delay. Blocks running
+    beside it, finished ones and calendar entries stay where they are."""
+    following = sorted(
+        (b for b in day.blocks if b is not block and b.start_minute >= old_end and b.status == "open" and b.source != "calendar"),
+        key=lambda b: (b.start_minute, b.id),
+    )
+    edge = new_end
+    for b in following:
+        if b.start_minute >= edge:
+            break
+        length = b.end_minute - b.start_minute
+        # Nothing runs past midnight: the last blocks get squeezed, at least 5 minutes long.
+        b.start_minute = min(edge, DAY_MINUTES - MIN_BLOCK_MINUTES)
+        b.end_minute = min(b.start_minute + length, DAY_MINUTES)
+        edge = b.end_minute
 
 
 def _set_status(block: Block, status: str) -> None:

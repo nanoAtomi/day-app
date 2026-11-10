@@ -2,7 +2,7 @@ import { useState, type FormEvent, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CATEGORIES, look } from '../lib/categories';
 import { DAY_MINUTES, formatMinute, parseTime } from '../lib/time';
-import { field, fieldLabel, primaryButton, secondaryButton } from './ui';
+import { autoFocusText, field, fieldLabel, primaryButton, secondaryButton } from './ui';
 
 const MIN_MINUTES = 5;
 
@@ -69,7 +69,7 @@ export function BlockForm({
           className={`${field} mt-1.5`}
           value={title}
           maxLength={200}
-          autoFocus={isNew}
+          autoFocus={isNew && autoFocusText()}
           enterKeyHint="done"
           placeholder={t('block.titlePlaceholder')}
           onChange={(e) => setTitle(e.target.value)}

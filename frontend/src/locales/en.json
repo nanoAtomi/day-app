@@ -177,5 +177,21 @@
     "title": "Insert a module",
     "start": "Starts at",
     "insertButton": "Insert"
+  },
+  "settings": {
+    "title": "Settings",
+    "lead": "Delay mode - soon notifications and calendars too."
+  },
+  "delay": {
+    "title": "When a block runs over",
+    "lead": "Applies to every day that doesn't say otherwise - switch it per day.",
+    "name": {
+      "fixed": "Fixed",
+      "cascade": "Push back"
+    },
+    "hint": {
+      "fixed": "Blocks stay where they are - even when one runs over.",
+      "cascade": "When a block runs over (+15 min, pulled longer, done late), the following ones move back - up to the next gap."
+    }
   }
 }
