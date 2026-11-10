@@ -12,11 +12,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import BaseModel, Field, model_validator
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, object_session
 
 from ..auth import current_user
 from ..db import get_db
-from ..models import BLOCK_STATUSES, CATEGORIES, DELAY_MODES, Block, Day, Subtask, Template, User, WeekdayAssignment, utcnow
+from ..models import BLOCK_STATUSES, CATEGORIES, DELAY_MODES, Block, CalendarEvent, CalendarSource, Day, Subtask, Template, User, WeekdayAssignment, utcnow
 from .templates import own_template
 
 router = APIRouter(prefix="/api", tags=["days"])
@@ -32,6 +32,7 @@ class SubtaskOut(BaseModel):
 
 
 class BlockOut(BaseModel):
+    # Calendar entries have negative ids: they are not blocks of the day and can't be changed.
     id: int
     start_minute: int
     end_minute: int
@@ -42,6 +43,9 @@ class BlockOut(BaseModel):
     actual_start: datetime | None
     actual_end: datetime | None
     subtasks: list[SubtaskOut]
+    # Calendar entries: the calendar's name and colour.
+    calendar: str | None = None
+    color: str | None = None
 
 
 class DayOut(BaseModel):
@@ -120,13 +124,36 @@ def _block(block: Block) -> BlockOut:
     )
 
 
+CALENDAR_ID_OFFSET = 1_000_000
+
+
+def calendar_blocks(db: Session, user: User, on: date) -> list[BlockOut]:
+    """The day's appointments from subscribed calendars, as read-only blocks."""
+    rows = db.execute(
+        select(CalendarEvent, CalendarSource.name, CalendarSource.color)
+        .join(CalendarSource, CalendarEvent.source_id == CalendarSource.id)
+        .where(CalendarEvent.owner_id == user.id, CalendarEvent.date == on)
+        .order_by(CalendarEvent.start_minute, CalendarEvent.id)
+    ).all()
+    return [
+        BlockOut(id=-(CALENDAR_ID_OFFSET + e.id), start_minute=e.start_minute, end_minute=e.end_minute, title=e.title, category="other",
+                 source="calendar", status="open", actual_start=None, actual_end=None, subtasks=[], calendar=name, color=color)
+        for e, name, color in rows
+    ]
+
+
+def _merge(blocks: list[BlockOut], calendar: list[BlockOut]) -> list[BlockOut]:
+    return sorted(blocks + calendar, key=lambda b: (b.start_minute, b.source == "calendar", b.id))
+
+
 def _day(day: Day, user: User) -> DayOut:
+    db = object_session(day)
     return DayOut(
         date=day.date,
         template_id=day.template_id,
         delay_mode=day.delay_mode or user.delay_mode,
         delay_mode_override=day.delay_mode,
-        blocks=[_block(b) for b in day.blocks],
+        blocks=_merge([_block(b) for b in day.blocks], calendar_blocks(db, user, day.date) if db else []),
     )
 
 
@@ -218,11 +245,14 @@ def list_days(
                 template_id=template.id if template else None,
                 delay_mode=user.delay_mode,
                 delay_mode_override=None,
-                blocks=[
-                    BlockOut(id=-(n + 1), start_minute=b.start_minute, end_minute=b.end_minute, title=b.title, category=b.category,
-                             source=b.source, status=b.status, actual_start=None, actual_end=None, subtasks=[])
-                    for n, b in enumerate(preview)
-                ],
+                blocks=_merge(
+                    [
+                        BlockOut(id=-(n + 1), start_minute=b.start_minute, end_minute=b.end_minute, title=b.title, category=b.category,
+                                 source=b.source, status=b.status, actual_start=None, actual_end=None, subtasks=[])
+                        for n, b in enumerate(preview)
+                    ],
+                    calendar_blocks(db, user, on),
+                ),
             )
         )
     return result

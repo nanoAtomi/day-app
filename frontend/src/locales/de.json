@@ -46,7 +46,8 @@
     "freeUntil": "Luft bis {{time}}.",
     "doneTitle": "Feierabend!",
     "doneText": "Für heute ist nichts mehr geplant.",
-    "toDay": "Ganzer Tag"
+    "toDay": "Ganzer Tag",
+    "fromCalendar": "Aus deinem Kalender „{{name}}“ – ändern kannst du ihn dort."
   },
   "day": {
     "timeline": "Zeitleiste",
@@ -70,7 +71,7 @@
     "status": "Status",
     "needTitle": "Gib dem Block einen Namen.",
     "badTimes": "Das Ende muss mindestens 5 Minuten nach dem Beginn liegen.",
-    "fromCalendar": "Aus deinem Kalender – ändern kannst du ihn dort.",
+    "fromCalendar": "Aus deinem Kalender „{{name}}“ – ändern kannst du den Termin dort.",
     "deleteTitle": "Block löschen?",
     "deleteText": "„{{title}}“ verschwindet aus diesem Tag."
   },
@@ -181,7 +182,7 @@
   },
   "settings": {
     "title": "Einstellungen",
-    "lead": "Verzugsmodus und Benachrichtigungen."
+    "lead": "Verzugsmodus, Benachrichtigungen und Kalender."
   },
   "delay": {
     "title": "Wenn ein Block länger dauert",
@@ -230,6 +231,51 @@
       "on": "Auf diesem Gerät an. ✓",
       "denied": "Blockiert – erlaube Benachrichtigungen in den Einstellungen des Browsers.",
       "server-off": "Auf dem Server noch nicht eingerichtet."
+    }
+  },
+  "calendar": {
+    "title": "Kalender",
+    "lead": "Termine aus Outlook, iCloud oder Google erscheinen schraffiert im Tag – nur lesend, alle 15 Minuten abgeglichen.",
+    "status": "{{count}} Termine · {{host}} · zuletzt {{when}}",
+    "sync": "„{{name}}“ jetzt abgleichen",
+    "delete": "„{{name}}“ entfernen",
+    "deleteTitle": "Kalender entfernen?",
+    "deleteText": "Die Termine aus „{{name}}“ verschwinden aus Tag und Woche. Im Kalender selbst ändert sich nichts.",
+    "add": "Kalender hinzufügen",
+    "name": "Name",
+    "namePlaceholder": "z. B. Arbeit",
+    "url": "Abo-Adresse (ICS)",
+    "urlHint": "Beginnt mit webcal:// oder https:// und endet oft auf .ics. Wie ein Passwort behandeln – sie wird nicht wieder angezeigt.",
+    "where": "Wo finde ich die Adresse?",
+    "color": "Farbe",
+    "addButton": "Hinzufügen",
+    "adding": "Wird gelesen …",
+    "providers": {
+      "outlook": {
+        "name": "Outlook",
+        "steps": "Outlook im Web → Einstellungen → Kalender → Freigegebene Kalender → „Kalender veröffentlichen“ → ICS-Link kopieren. Ob das geht, entscheidet bei Firmen-Konten die IT."
+      },
+      "icloud": {
+        "name": "iCloud",
+        "steps": "Kalender-App → (i) neben dem Kalender → „Öffentlicher Kalender“ einschalten → Link teilen/kopieren."
+      },
+      "google": {
+        "name": "Google",
+        "steps": "Google Kalender im Web → Einstellungen → Kalender auswählen → „Privatadresse im iCal-Format“ kopieren."
+      }
+    },
+    "errors": {
+      "scheme": "Die Adresse muss mit https:// oder webcal:// beginnen.",
+      "credentials": "Adressen mit Benutzername oder Passwort gehen nicht.",
+      "unreachable": "Der Server des Kalenders ist nicht erreichbar.",
+      "forbidden": "Diese Adresse ist nicht erlaubt.",
+      "http": "Der Kalender antwortet mit Fehler {{status}} – ist die Adresse noch gültig?",
+      "too_big": "Der Kalender ist zu groß (über 5 MB).",
+      "redirects": "Zu viele Weiterleitungen.",
+      "not_ics": "Unter der Adresse liegt keine Kalender-Datei (ICS).",
+      "timeout": "Der Kalender hat zu lange gebraucht – später nochmal.",
+      "unreadable": "Der Kalender konnte nicht gelesen werden.",
+      "too_many": "Mehr als 10 Kalender gehen nicht."
     }
   }
 }

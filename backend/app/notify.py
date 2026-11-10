@@ -1,4 +1,5 @@
-"""Block notifications: when a block starts, and optionally a few minutes before.
+"""Block notifications: when a block starts, and optionally a few minutes before - for
+calendar appointments too. The same minute loop also keeps the calendars in sync.
 
 A scheduler thread checks every minute. For each person with a device that turned push
 on, it looks at today's open blocks in their time zone (today is created from its
@@ -15,10 +16,10 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from . import push
+from . import calendar_sync, push
 from .api.days import get_or_create_day
 from .db import SessionLocal
-from .models import NotificationLog, PushSubscription, User
+from .models import CalendarEvent, NotificationLog, PushSubscription, User
 
 log = logging.getLogger("day.notify")
 
@@ -75,10 +76,11 @@ def notify_user(db: Session, user: User, now: datetime) -> int:
     local = now.astimezone(_zone(user))
     minute = local.hour * 60 + local.minute
     day = get_or_create_day(db, user, local.date())
+    # Own blocks by id; calendar entries by their stable key (each sync stores them anew).
+    items = [(str(b.id), b) for b in day.blocks if b.status == "open"]
+    items += [(f"cal-{e.key}", e) for e in db.scalars(select(CalendarEvent).where(CalendarEvent.owner_id == user.id, CalendarEvent.date == day.date))]
     sent = 0
-    for block in day.blocks:
-        if block.status != "open":
-            continue
+    for ident, block in items:
         moments = []
         if user.notify_start:
             moments.append(("start", block.start_minute))
@@ -87,7 +89,7 @@ def notify_user(db: Session, user: User, now: datetime) -> int:
         for kind, at in moments:
             if not (at <= minute < at + LATE_MINUTES):
                 continue
-            key = f"{day.date.isoformat()}:{block.id}:{block.start_minute}:{kind}"
+            key = f"{day.date.isoformat()}:{ident}:{block.start_minute}:{kind}"
             if not _first_time(db, user.id, key):
                 continue
             values = {"title": block.title, "start": _hhmm(block.start_minute), "end": _hhmm(block.end_minute), "minutes": user.notify_lead_minutes}
@@ -95,17 +97,22 @@ def notify_user(db: Session, user: User, now: datetime) -> int:
                 "title": _t(lang, kind, **values),
                 "body": _t(lang, f"{kind}_body", **values),
                 "url": "/",
-                "tag": f"block-{block.id}",
+                "tag": f"block-{ident}",
             })
             sent += 1
     return sent
 
 
 def run_once(now: datetime | None = None) -> int:
-    """One round for everybody with a push device."""
+    """One round: calendars due for a sync, then notifications for everybody with a push device."""
     now = now or datetime.now(ZoneInfo("UTC"))
     total = 0
     with SessionLocal() as db:
+        try:
+            calendar_sync.sync_due(db)
+        except Exception:
+            db.rollback()
+            log.exception("Calendar sync failed")
         user_ids = db.scalars(select(PushSubscription.user_id).distinct()).all()
         for user_id in user_ids:
             user = db.get(User, user_id)

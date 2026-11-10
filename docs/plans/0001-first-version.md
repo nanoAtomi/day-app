@@ -31,9 +31,10 @@ Day plans the day in fixed time blocks; opening the app shows at once what is on
 | TemplateBlock | template, start, duration, title, category, subtask titles |
 | WeekdayAssignment | owner, weekday → day template |
 | Day | owner, date, template, delay mode (empty = the user's default) |
-| Block | day, start, end, title, category, source `template` / `manual` / `calendar`, status `open` / `done` / `skipped`, actual start and end |
+| Block | day, start, end, title, category, source `template` / `manual`, status `open` / `done` / `skipped`, actual start and end |
 | Subtask | block, title, done |
-| CalendarSource | owner, name, ICS URL, colour, last sync (step 6) |
+| CalendarSource | owner, name, ICS URL, colour, last sync and its error (step 6) |
+| CalendarEvent | source, date, start, end, title - one per appointment and day, replaced by each sync; shown as read-only blocks (source `calendar`) |
 | PushSubscription | owner, endpoint, keys (step 5) |
 | Settings | on the user: default delay mode, notification lead time, time zone |
 
@@ -56,8 +57,8 @@ Phone: bottom navigation Now, Day, Week, More. Desktop: Now on the left, the day
 | **2** Templates | templates and modules (CRUD, same timeline editor as a day), weekday assignment, days created from their weekday's template from today on, week previews that store nothing, switching a day's template (own blocks and modules stay), inserting a module at a chosen time, starter templates once per user; Week, Templates and More views | done ([#2](https://github.com/nanoAtomi/day-app/pull/2)) |
 | **3** Drag & drop | move blocks by dragging (touch: after a long press, so the page still scrolls) and pull their bottom edge, on days and templates; delay mode `cascade` (+15 min, a longer block or a block done late pushes the following open blocks back up to the next gap) as default in Settings and per day; text fields no longer open the keyboard by themselves on touch screens | done ([#3](https://github.com/nanoAtomi/day-app/pull/3), [#4](https://github.com/nanoAtomi/day-app/pull/4): whole day 0-24, now line in front, labelled delay switch, scroll to now on every tap on Day, new blocks by holding a free spot) |
 | **4** Subtasks | per block, copied from the template's titles; tick off on Now (with a done count), add, tick, remove in the block's sheet; count on the timeline; none on calendar blocks | done ([#5](https://github.com/nanoAtomi/day-app/pull/5)) |
-| **5** Web Push | VAPID keys as portal secrets, scheduler thread every minute, at a block's start and optionally 5-30 minutes before, each notice once (a moved block again), late ones after downtime dropped; Settings: turn on per device, test, choose when ([ADR 0002](../architecture/adr/0002-web-push-and-in-process-scheduler.md)) | in review |
-| **6** Calendar import | ICS sources, 15-minute sync, read-only calendar blocks | |
+| **5** Web Push | VAPID keys as portal secrets, scheduler thread every minute, at a block's start and optionally 5-30 minutes before, each notice once (a moved block again), late ones after downtime dropped; Settings: turn on per device, test, choose when ([ADR 0002](../architecture/adr/0002-web-push-and-in-process-scheduler.md)) | done ([#6](https://github.com/nanoAtomi/day-app/pull/6)) |
+| **6** Calendar import | ICS subscription addresses (Outlook, iCloud, Google) in Settings, read at once and every 15 minutes for yesterday to two weeks ahead; appointments as hatched read-only blocks in the calendar's colour on day, week and Now, with notifications; all-day events left out; safe fetching ([ADR 0003](../architecture/adr/0003-ics-calendar-import.md)) | in review |
 | **7** Statistics | status tracking, completion rate, streak, skipped blocks | |
 | **8** Later | tickets (PDF/.pkpass/ICS), Todo links | |
 

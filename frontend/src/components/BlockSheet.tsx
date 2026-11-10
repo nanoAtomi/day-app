@@ -27,7 +27,7 @@ export function BlockSheet({ date, target, onClose }: { date: string; target: Sh
         <p className="text-sm text-slate-600 dark:text-slate-300">
           {formatMinute(existing.start_minute)} – {formatMinute(existing.end_minute)}
         </p>
-        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{t('block.fromCalendar')}</p>
+        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">📅 {t('block.fromCalendar', { name: existing.calendar ?? '' })}</p>
       </Dialog>
     );
   }

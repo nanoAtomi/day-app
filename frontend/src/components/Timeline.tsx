@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type MouseEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Block } from '../api/day';
-import { look } from '../lib/categories';
+import { calendarLook, look } from '../lib/categories';
 import { dragTimes, placeBlocks, type DragMode } from '../lib/plan';
 import { DAY_MINUTES, formatMinute } from '../lib/time';
 import type { SheetTarget } from './BlockSheet';
@@ -260,7 +260,7 @@ export function Timeline({
         const movable = onChange !== undefined && block.source !== 'calendar';
         const height = Math.max(((block.end_minute - block.start_minute) / 60) * HOUR_PX - 2, 22);
         const roomy = height >= 44;
-        const style = look(block.category);
+        const style = block.source === 'calendar' ? { ...look('other'), ...calendarLook(block.color), icon: '📅' } : look(block.category);
         return (
           <button
             key={block.id}
@@ -270,7 +270,7 @@ export function Timeline({
             onContextMenu={(e) => movable && e.preventDefault()}
             className={`group absolute isolate [-webkit-touch-callout:none] ${held ? `z-20 cursor-grabbing shadow-xl ring-2 ${held.cancel ? 'opacity-50 ring-red-500' : 'ring-brand'}` : 'z-[1]'} flex min-w-0 overflow-hidden rounded-xl border-l-4 bg-surface px-2 text-left text-sm shadow-sm ${style.block} ${
               roomy ? 'flex-col justify-start py-1' : 'items-center gap-2'
-            } ${block.source === 'calendar' ? 'hatched' : ''} ${block.status === 'done' ? 'opacity-55' : ''} ${block.status === 'skipped' ? 'opacity-40' : ''} ${
+            } ${block.status === 'done' ? 'opacity-55' : ''} ${block.status === 'skipped' ? 'opacity-40' : ''} ${
               held ? '' : block.id === currentId ? 'ring-2 ring-inset ring-brand' : overlaps ? 'ring-2 ring-inset ring-amber-500/80' : ''
             } ${held ? '' : 'transition hover:brightness-[0.97] active:scale-[0.99]'}`}
             style={{
@@ -280,7 +280,7 @@ export function Timeline({
               width: `calc((100% - ${GUTTER}) / ${lanes} - 4px)`,
             }}
           >
-            <span aria-hidden className={`absolute inset-0 -z-10 ${style.tint}`} />
+            <span aria-hidden className={`absolute inset-0 -z-10 ${style.tint} ${block.source === 'calendar' ? 'hatched' : ''}`} />
             <span className={`flex min-w-0 items-center gap-1.5 font-semibold ${block.status === 'skipped' ? 'line-through' : ''}`}>
               <span aria-hidden>{block.status === 'done' ? '✓' : style.icon}</span>
               <span className="truncate">{block.title}</span>

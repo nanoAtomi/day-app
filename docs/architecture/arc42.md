@@ -27,7 +27,7 @@ Browser / installed PWA ──HTTPS──▶ Traefik ─▶ oauth2-proxy (Keyclo
 portal-api ──internal──▶ app-day /api/platform/users/* (export and delete of a person)
 ```
 
-Push notifications go out through the browsers' push services (Web Push, VAPID). Later: ICS calendar URLs (read, step 6).
+Push notifications go out through the browsers' push services (Web Push, VAPID). Subscribed calendars are read from their ICS addresses (Outlook, iCloud, Google; https only, public hosts only).
 
 ## 5. Building blocks
 
@@ -38,6 +38,7 @@ Push notifications go out through the browsers' push services (Web Push, VAPID).
 | Days and blocks | `backend/app/api/days.py` | day of a date (created on first access from its weekday's template), week previews, switching a day's template, inserting a module, blocks: add, change, status, delete |
 | Subtasks | `backend/app/api/subtasks.py` | a block's subtasks: add, tick, rename, delete (through the block's day owner) |
 | Notifications | `backend/app/notify.py`, `push.py`, `api/push.py` | scheduler thread (every minute): block start and advance notice per device, sent once; device subscriptions, test notice |
+| Calendars | `backend/app/calendar_sync.py`, `api/calendars.py` | safe ICS fetching, parsing (recurring, over midnight), sync every 15 minutes; subscriptions in Settings (address write-only) |
 | Templates | `backend/app/api/templates.py`, `backend/app/seed.py` | day templates and modules with their blocks, weekday assignment; starter templates once per user |
 | Me | `backend/app/api/me.py` | the user, platform links and settings (delay mode, lead time, time zone) |
 | Your data | `backend/app/platform_data.py` | export and delete for the portal |
@@ -53,7 +54,7 @@ One image `ghcr.io/nanoatomi/day-app` (Node builds the SPA, Python serves it and
 - **Time:** a day is a date in the user's time zone; blocks hold minutes after midnight (`start_minute`, `end_minute`, 0-1440). The frontend reads "now" with `Intl` in the user's time zone, so a phone in another zone still sees the Berlin plan.
 - **Ownership:** every day belongs to a user; blocks are reached only through their day's owner (404 otherwise). Tests prove one user can't see or change another's blocks.
 - **Templates are copied, never referenced:** a day gets copies of its template's blocks (source `template`); switching the template replaces only those. Modules arrive as the day's own blocks (source `manual`).
-- **Calendar blocks** (`source = calendar`) are read-only: only their status changes.
+- **Calendar entries** live in `calendar_events` and are merged into each day as read-only blocks (negative ids, the calendar's name and colour).
 - **Optimistic updates:** done, skip and +15 min show at once and roll back on an error.
 - **Overlaps:** blocks that share time sit side by side on the timeline with an amber mark.
 - **Dragging:** the timeline moves a block with the pointer (5-minute steps) or places a new one (quarter hours); on touch only after a 350 ms long press, and a non-passive `touchmove` listener stops the page from scrolling meanwhile. Positions are computed from page coordinates, so the page can auto-scroll near the screen edges while something is held. The bottom edge resizes at once. One PATCH (or the new block's sheet) when the pointer is let go; over the hour labels it cancels.
@@ -65,3 +66,4 @@ One image `ghcr.io/nanoatomi/day-app` (Node builds the SPA, Python serves it and
 |---|---|
 | [0001](adr/0001-golden-path-one-container.md) | Golden path: FastAPI + React in one container; local times as minutes |
 | [0002](adr/0002-web-push-and-in-process-scheduler.md) | Web Push (VAPID) from an in-process scheduler |
+| [0003](adr/0003-ics-calendar-import.md) | Calendar import from ICS addresses, fetched safely |

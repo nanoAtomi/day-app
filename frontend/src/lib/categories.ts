@@ -28,3 +28,17 @@ export const LOOK: Record<Category, Look> = {
 export function look(category: string): Look {
   return LOOK[(CATEGORIES as readonly string[]).includes(category) ? (category as Category) : 'other'];
 }
+
+/** Calendar entries take their calendar's colour instead of a category's. */
+const CALENDAR: Record<string, { block: string; tint: string; dot: string }> = {
+  slate: { block: 'border-slate-500 text-slate-900 dark:text-slate-100', tint: 'bg-slate-100 dark:bg-slate-500/20', dot: 'bg-slate-500' },
+  blue: { block: 'border-blue-500 text-blue-950 dark:text-blue-100', tint: 'bg-blue-50 dark:bg-blue-500/15', dot: 'bg-blue-500' },
+  teal: { block: 'border-teal-500 text-teal-950 dark:text-teal-100', tint: 'bg-teal-50 dark:bg-teal-500/15', dot: 'bg-teal-500' },
+  amber: { block: 'border-amber-500 text-amber-950 dark:text-amber-100', tint: 'bg-amber-50 dark:bg-amber-500/15', dot: 'bg-amber-500' },
+  rose: { block: 'border-rose-500 text-rose-950 dark:text-rose-100', tint: 'bg-rose-50 dark:bg-rose-500/15', dot: 'bg-rose-500' },
+  violet: { block: 'border-violet-500 text-violet-950 dark:text-violet-100', tint: 'bg-violet-50 dark:bg-violet-500/15', dot: 'bg-violet-500' },
+};
+
+export function calendarLook(color: string | null | undefined) {
+  return CALENDAR[color ?? 'slate'] ?? CALENDAR.slate;
+}

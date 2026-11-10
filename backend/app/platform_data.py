@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 
 from .config import settings
 from .db import get_db
-from .models import Day, Template, User, WeekdayAssignment
+from .models import CalendarSource, Day, Template, User, WeekdayAssignment
 
 router = APIRouter(prefix="/api/platform/users", include_in_schema=False)
 
@@ -63,6 +63,8 @@ def export(user: str, db: Session = Depends(get_db)) -> dict:
             }
             for t in templates
         ],
+        # Names only: the address works like a password.
+        "calendars": [s.name for s in db.scalars(select(CalendarSource).where(CalendarSource.owner_id == person.id).order_by(CalendarSource.id))],
         "weekdays": {str(w.weekday): names.get(w.template_id) for w in weekdays},
         "days": [
             {

@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMe, useUpdateMe, type DelayMode } from '../api/day';
 import { disablePush, enablePush, pushConfig, pushState, sendTestPush, type PushState } from '../api/push';
+import { CalendarSettings } from '../components/CalendarSettings';
 import { Switch } from '../components/Switch';
 import { PageHeader, primaryButton, secondaryButton, usePhone } from '../components/ui';
 
 const MODES: DelayMode[] = ['fixed', 'cascade'];
 
-/** Settings: delay mode and notifications; calendars join later. */
+/** Settings: delay mode, notifications and subscribed calendars. */
 export function SettingsPage() {
   const { t } = useTranslation();
   const me = useMe();
@@ -38,6 +39,7 @@ export function SettingsPage() {
         <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">{t(`delay.hint.${mode}`)}</p>
       </section>
       <Notifications />
+      <CalendarSettings />
     </div>
   );
 }
