@@ -1,0 +1,108 @@
+{
+  "app": {
+    "name": "Day"
+  },
+  "loading": "One moment…",
+  "error": {
+    "load": "That didn't work: {{message}}",
+    "notSignedIn": "You are not signed in. Reload the page to sign in.",
+    "retry": "Try again"
+  },
+  "common": {
+    "close": "Close",
+    "cancel": "Cancel",
+    "ok": "OK",
+    "save": "Save",
+    "delete": "Delete",
+    "add": "Add"
+  },
+  "nav": {
+    "main": "Views",
+    "now": "Now",
+    "day": "Day"
+  },
+  "time": {
+    "h": "h",
+    "min": "min"
+  },
+  "now": {
+    "label": "On now",
+    "current": "Current block",
+    "left": "{{duration}} left",
+    "progress": "Progress",
+    "done": "Done",
+    "skip": "Skip",
+    "extend": "+15 min",
+    "next": "Up next",
+    "in": "in {{duration}}",
+    "emptyTitle": "Pretty empty in here.",
+    "emptyText": "Plan your day in blocks - then this page always shows what's on right now.",
+    "addFirst": "Add the first block",
+    "freeTitle": "Free right now",
+    "freeUntil": "Breathing room until {{time}}.",
+    "doneTitle": "Done for the day!",
+    "doneText": "Nothing else is planned for today.",
+    "toDay": "Whole day"
+  },
+  "day": {
+    "timeline": "Timeline",
+    "today": "Today",
+    "toToday": "Today",
+    "previous": "Previous day",
+    "next": "Next day",
+    "overlap": "Overlaps",
+    "emptyHint": "Tap a time to add a block there."
+  },
+  "block": {
+    "new": "New block",
+    "edit": "Edit block",
+    "title": "What's on?",
+    "titlePlaceholder": "e.g. Breakfast",
+    "start": "Start",
+    "end": "End",
+    "category": "Kind",
+    "status": "Status",
+    "needTitle": "Give the block a name.",
+    "badTimes": "The end has to be at least 5 minutes after the start.",
+    "fromCalendar": "From your calendar - change it there.",
+    "deleteTitle": "Delete block?",
+    "deleteText": "\"{{title}}\" disappears from this day."
+  },
+  "status": {
+    "open": "Open",
+    "done": "Done",
+    "skipped": "Skipped"
+  },
+  "category": {
+    "meal": "Meal",
+    "care": "Self-care",
+    "commute": "Commute",
+    "work": "Work",
+    "chores": "Chores",
+    "sport": "Sport",
+    "leisure": "Free time",
+    "other": "Other"
+  },
+  "platform": {
+    "portal": "Portal",
+    "portalTitle": "Back to the app portal",
+    "menu": "Account menu",
+    "language": "Language",
+    "profile": "Edit profile",
+    "feedback": "Feedback on this app",
+    "signOut": "Sign out",
+    "toDark": "Dark appearance",
+    "toLight": "Light appearance",
+    "made": "Handmade. With too much coffee.",
+    "legal": "Legal",
+    "privacy": "Privacy",
+    "terms": "Terms of use",
+    "viewAs": "View",
+    "viewAsHint": "How others see the apps - only for you as a superuser, switch back any time.",
+    "views": {
+      "superuser": "Superuser",
+      "admin": "Admin",
+      "user": "User"
+    }
+  }
+}

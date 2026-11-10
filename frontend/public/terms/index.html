@@ -1,0 +1,69 @@
+<!doctype html>
+<!-- Legal page in the app's frame (multi-app blueprint: templates/frontend/legal). Public
+     (portal.yml publicPaths); legal.js shows the platform's language and appearance. -->
+<html lang="de" data-title-de="Nutzungsbedingungen · Tag" data-title-en="Terms of use · Day">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="index, follow">
+  <title>Nutzungsbedingungen · Tag</title>
+  <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0c0d10" media="(prefers-color-scheme: dark)">
+  <link rel="stylesheet" href="/legal/legal.css">
+  <script src="/legal/legal.js"></script>
+</head>
+<body>
+  <header class="bar">
+    <div class="container">
+      <a class="portal-chip" href="https://portal.nicasso.de" data-portal><span aria-hidden="true">‹</span>Portal</a>
+      <span class="bar-divider" aria-hidden="true"></span>
+      <a class="bar-app" href="/"><span class="icon" aria-hidden="true">🕘</span><strong lang="de">Tag</strong><strong lang="en">Day</strong></a>
+      <a class="bar-avatar" href="https://portal.nicasso.de" data-portal data-avatar aria-label="Portal">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM4 21a8 8 0 0 1 16 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+      </a>
+    </div>
+  </header>
+
+  <main class="container">
+    <article lang="de">
+      <div class="legal-head">
+        <h1>Nutzungsbedingungen</h1>
+        <p class="updated">Stand: 10. November 2026</p>
+      </div>
+      <div class="prose">
+        <h2>Geltung und Nutzung</h2>
+        <p>Diese Bedingungen gelten für die private Nutzung der App Tag unter <strong>day.nicasso.de</strong>. Die App ist für die persönliche, nicht gewerbliche Nutzung des Betreibers und von ihm berechtigter Personen gedacht.</p>
+        <h2>Angaben und Verfügbarkeit</h2>
+        <p>Die App ist ein persönlicher Planer. Erinnerungen und Kalenderdaten können verspätet kommen, unvollständig oder falsch sein – verlass dich bei wichtigen Terminen nicht allein darauf.</p>
+        <p>Der Betreiber kann die App ändern, vorübergehend aussetzen oder einstellen. Eine bestimmte Verfügbarkeit oder ein fehlerfreier Betrieb wird nicht zugesichert.</p>
+        <h2>Datenschutz</h2>
+        <p>Wie personenbezogene Daten verarbeitet, gespeichert und gelöscht werden, steht unter <a href="/privacy/">Datenschutz</a>.</p>
+      </div>
+    </article>
+
+    <article lang="en">
+      <div class="legal-head">
+        <h1>Terms of use</h1>
+        <p class="updated">Last updated: 10 November 2026</p>
+      </div>
+      <div class="prose">
+        <h2>Scope and use</h2>
+        <p>These terms apply to private use of the Day app provided at <strong>day.nicasso.de</strong>. The app is intended for the operator's personal, non-commercial use and people authorized by the operator.</p>
+        <h2>Information and availability</h2>
+        <p>The app is a personal planner. Reminders and calendar data may arrive late, be incomplete or wrong - don't rely on them alone for important appointments.</p>
+        <p>The operator may update, temporarily suspend, or discontinue the app. No particular availability or error-free operation is guaranteed.</p>
+        <h2>Privacy</h2>
+        <p>Information about processing, storage, and deletion of personal data is available under <a href="/privacy/">Privacy</a>.</p>
+      </div>
+    </article>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <span><span class="wordmark">Nicasso</span> · <span lang="de">Handgemacht. Mit zu viel Kaffee.</span><span lang="en">Handmade. With too much coffee.</span></span>
+      <nav lang="de" aria-label="Rechtliches"><a href="/privacy/">Datenschutz</a><a href="/terms/">Nutzungsbedingungen</a></nav>
+      <nav lang="en" aria-label="Legal"><a href="/privacy/">Privacy</a><a href="/terms/">Terms of use</a></nav>
+    </div>
+  </footer>
+</body>
+</html>
