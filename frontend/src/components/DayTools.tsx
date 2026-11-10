@@ -26,40 +26,46 @@ export function DayTools({ day, editable }: { day: Day; editable: boolean }) {
     setTemplate.mutate(value ? Number(value) : null);
   };
 
+  const cascade = day.delay_mode === 'cascade';
   return (
-    <div className="mb-4 flex items-center gap-2">
-      <label className="min-w-0 flex-1">
-        <span className="sr-only">{t('day.template')}</span>
-        <select className={`${field} min-h-10 py-1.5 text-sm`} value={day.template_id ?? ''} disabled={!editable} onChange={(e) => void change(e.target.value)}>
-          <option value="">{t('week.noTemplate')}</option>
-          {dayTemplates.map((x) => (
-            <option key={x.id} value={x.id}>
-              {x.icon} {x.name}
-            </option>
-          ))}
-        </select>
-      </label>
-      <button
-        type="button"
-        disabled={!editable}
-        aria-pressed={day.delay_mode === 'cascade'}
-        title={t(`delay.hint.${day.delay_mode}`)}
-        aria-label={t(`delay.name.${day.delay_mode}`)}
-        onClick={() => {
-          const next = day.delay_mode === 'cascade' ? 'fixed' : 'cascade';
+    <div className="mb-4 space-y-2">
+      <div className="flex items-center gap-2">
+        <label className="min-w-0 flex-1">
+          <span className="sr-only">{t('day.template')}</span>
+          <select className={`${field} min-h-10 py-1.5 text-sm`} value={day.template_id ?? ''} disabled={!editable} onChange={(e) => void change(e.target.value)}>
+            <option value="">{t('week.noTemplate')}</option>
+            {dayTemplates.map((x) => (
+              <option key={x.id} value={x.id}>
+                {x.icon} {x.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        {modules.length > 0 && (
+          <button type="button" className={`${secondaryButton} min-h-10 shrink-0 px-3`} onClick={() => setInserting(true)}>
+            + {t('module.insert')}
+          </button>
+        )}
+      </div>
+      {/* Running late: a labelled switch - an icon alone didn't say what it does. */}
+      <div className="flex min-h-11 items-center gap-3 rounded-2xl bg-ink/[0.03] px-3 dark:bg-white/[0.04]">
+        <span className="min-w-0 flex-1">
+          <span id={`delay-${day.date}`} className="block text-sm font-medium">{t('delay.switch')}</span>
+          <span className="block truncate text-xs text-slate-500 dark:text-slate-400">{t(`delay.short.${day.delay_mode}`)}</span>
+        </span>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={cascade}
+          aria-labelledby={`delay-${day.date}`}
+          disabled={!editable}
           // Matching the default again: follow it (a later change of the default applies).
-          setDelay.mutate(next === defaultMode ? null : next);
-        }}
-        className={`${secondaryButton} min-h-10 shrink-0 px-3 ${day.delay_mode === 'cascade' ? 'border-brand/40 bg-brand/10 text-brand' : ''}`}
-      >
-        <span aria-hidden>{day.delay_mode === 'cascade' ? '⏩' : '⏸'}</span>
-        <span aria-hidden className="ml-1.5 max-sm:hidden">{t(`delay.name.${day.delay_mode}`)}</span>
-      </button>
-      {modules.length > 0 && (
-        <button type="button" className={`${secondaryButton} min-h-10 shrink-0 px-3`} onClick={() => setInserting(true)}>
-          + {t('module.insert')}
+          onClick={() => setDelay.mutate((cascade ? 'fixed' : 'cascade') === defaultMode ? null : cascade ? 'fixed' : 'cascade')}
+          className={`relative h-7 w-12 shrink-0 rounded-full transition-colors disabled:opacity-50 ${cascade ? 'bg-brand' : 'bg-slate-300 dark:bg-white/20'}`}
+        >
+          <span className={`absolute top-0.5 left-0.5 size-6 rounded-full bg-white shadow transition-transform ${cascade ? 'translate-x-5' : ''}`} />
         </button>
-      )}
+      </div>
       {inserting && <ModuleSheet date={day.date} modules={modules} onClose={() => setInserting(false)} />}
     </div>
   );

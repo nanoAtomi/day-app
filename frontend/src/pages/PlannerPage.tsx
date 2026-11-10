@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useDay, useUpdateBlock, type Day } from '../api/day';
 import { BlockSheet, type SheetTarget } from '../components/BlockSheet';
 import { DayTools } from '../components/DayTools';
@@ -22,6 +22,8 @@ export function PlannerPage({ view, timeZone }: { view: 'now' | 'day'; timeZone:
   const { t, i18n } = useTranslation();
   const clock = useClock(timeZone);
   const [params] = useSearchParams();
+  // Every tap on "Day" is a new location: scroll to now again, even when already there.
+  const location = useLocation();
   const requested = params.get('date');
   const date = view === 'day' && requested && DATE.test(requested) ? requested : clock.date;
   const isToday = date === clock.date;
@@ -82,6 +84,7 @@ export function PlannerPage({ view, timeZone }: { view: 'now' | 'day'; timeZone:
                 currentId={isToday ? (nowAndNext(day.blocks, clock.minute).current?.id ?? null) : null}
                 onOpen={open(date)}
                 onChange={(block, start, end) => update.mutate({ id: block.id, start_minute: start, end_minute: end })}
+                scrollKey={location.key}
               />
             </>
           )}
