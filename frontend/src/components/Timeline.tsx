@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type MouseEvent, type PointerEvent as Reac
 import { useTranslation } from 'react-i18next';
 import type { Block } from '../api/day';
 import { calendarLook, look } from '../lib/categories';
-import { dragTimes, placeBlocks, type DragMode } from '../lib/plan';
+import { clampEnd, dragTimes, fitEnd, placeBlocks, type DragMode } from '../lib/plan';
 import { DAY_MINUTES, formatMinute } from '../lib/time';
 import type { SheetTarget } from './BlockSheet';
 import { subtaskCount } from './SubtaskList';
@@ -62,6 +62,7 @@ export function Timeline({
   onOpen,
   onChange,
   scrollKey,
+  pushesOn = false,
 }: {
   blocks: Block[];
   nowMinute: number | null;
@@ -69,6 +70,8 @@ export function Timeline({
   onOpen: (target: SheetTarget) => void;
   onChange?: (block: Block, start: number, end: number) => void;
   scrollKey?: string;
+  /** Delay mode `cascade`: a longer block may run into the next (the server pushes it on). */
+  pushesOn?: boolean;
 }) {
   const { t } = useTranslation();
   const grid = useRef<HTMLDivElement>(null);
@@ -116,8 +119,10 @@ export function Timeline({
     let next = dragTimes(d.mode === 'resize' ? 'resize' : 'move', d.start0, d.end0, (dy / HOUR_PX) * 60);
     if (d.mode === 'create') {
       // A new block lands on quarter hours; existing ones move in 5-minute steps.
-      const start = Math.min(DAY_MINUTES - (d.end0 - d.start0), Math.round(next.start / 15) * 15);
-      next = { start, end: start + (d.end0 - d.start0) };
+      const start = Math.min(DAY_MINUTES - 15, Math.round(next.start / 15) * 15);
+      next = { start, end: fitEnd(blocks, start, NEW_BLOCK_MINUTES) };
+    } else if (d.mode === 'resize' && !pushesOn) {
+      next = { ...next, end: clampEnd(blocks, { id: d.id, start_minute: d.start0, end_minute: d.end0 }, next.end) };
     }
     const left = grid.current?.getBoundingClientRect().left ?? 0;
     const cancel = d.mode !== 'resize' && clientX < left + GUTTER_PX;
@@ -194,13 +199,15 @@ export function Timeline({
       pageY0: event.clientY + window.scrollY,
       start: d.start0,
       end: d.end0,
-      active: d.mode === 'resize',
+      // Mouse: starts on the first movement. Touch: only after a long press - also at the
+      // edge, so scrolling over it never changes a block by accident.
+      active: false,
       cancel: false,
       clientX: event.clientX,
       clientY: event.clientY,
     };
     setDrag(held);
-    if (touch && d.mode !== 'resize') {
+    if (touch) {
       window.clearTimeout(pressTimer.current);
       pressTimer.current = window.setTimeout(() => {
         const current = dragRef.current;
@@ -226,14 +233,14 @@ export function Timeline({
 
   const press = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.target !== event.currentTarget || event.button > 0) return;
-    const start = Math.min(minuteAt(event.clientY), DAY_MINUTES - NEW_BLOCK_MINUTES);
-    begin(event, { id: 0, mode: 'create', start0: start, end0: start + NEW_BLOCK_MINUTES });
+    const start = minuteAt(event.clientY);
+    begin(event, { id: 0, mode: 'create', start0: start, end0: fitEnd(blocks, start, NEW_BLOCK_MINUTES) });
   };
 
   const addAt = (event: MouseEvent<HTMLDivElement>) => {
     if (event.target !== event.currentTarget || swallowClick.current) return;
     const start = minuteAt(event.clientY);
-    onOpen({ start, end: Math.min(DAY_MINUTES, start + NEW_BLOCK_MINUTES) });
+    onOpen({ start, end: fitEnd(blocks, start, NEW_BLOCK_MINUTES) });
   };
 
   const creating = drag?.mode === 'create' && drag.active ? drag : null;
@@ -299,8 +306,10 @@ export function Timeline({
             )}
             {movable && block.status === 'open' && (
               // The bottom edge: pull it to make the block longer or shorter.
-              <span data-resize aria-hidden className="absolute inset-x-0 bottom-0 flex h-3.5 cursor-ns-resize touch-none items-end justify-center pb-1">
-                <span className="h-1 w-8 rounded-full bg-current opacity-25 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-25" />
+              // Only the grip in the middle of the bottom edge changes the length; the rest of
+              // the block moves it.
+              <span data-resize aria-hidden className="absolute bottom-0 left-1/2 flex h-4 w-14 -translate-x-1/2 cursor-ns-resize items-end justify-center pb-1">
+                <span className="h-1 w-8 rounded-full bg-current opacity-30 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-30" />
               </span>
             )}
           </button>

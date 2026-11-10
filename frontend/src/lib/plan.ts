@@ -78,3 +78,23 @@ export function dragTimes(mode: DragMode, start: number, end: number, deltaMinut
   const moved = Math.min(DAY - length, Math.max(0, start + delta));
   return { start: moved, end: moved + length };
 }
+
+/**
+ * Where a new block ends: `length` minutes after `start`, but no later than the next block
+ * begins - a new block fills the gap instead of running into the next one (at least 5 minutes).
+ */
+export function fitEnd(blocks: Block[], start: number, length = 60): number {
+  const next = blocks.filter((b) => b.start_minute > start).reduce((min, b) => Math.min(min, b.start_minute), DAY);
+  return Math.max(start + MIN_MINUTES, Math.min(start + length, next, DAY));
+}
+
+/**
+ * Pulling a block's end down stops at the next block's start (delay mode `fixed`), so no
+ * thin overlap appears. Already overlapping blocks keep their current end as the limit.
+ */
+export function clampEnd(blocks: Block[], block: { id: number; start_minute: number; end_minute: number }, end: number): number {
+  const next = blocks
+    .filter((b) => b.id !== block.id && b.start_minute > block.start_minute)
+    .reduce((min, b) => Math.min(min, b.start_minute), DAY);
+  return Math.min(end, Math.max(block.end_minute, next));
+}

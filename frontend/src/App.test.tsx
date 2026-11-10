@@ -135,12 +135,25 @@ describe('App', () => {
     fireEvent.pointerUp(window, { pointerId: 1, clientX: 200, clientY: 164 });
     await waitFor(() => expect(requests).toContainEqual({ method: 'PATCH', url: '/api/blocks/3', body: { start_minute: 540, end_minute: 600 } }));
 
-    const bath = (await screen.findAllByRole('button', { name: /Bad\/Anziehen/ })).at(-1)!;
-    const edge = bath.querySelector('[data-resize]')!;
-    fireEvent.pointerDown(edge, { pointerId: 2, pointerType: 'touch', button: 0, clientY: 200 });
-    fireEvent.pointerMove(window, { pointerId: 2, clientY: 216 });
-    fireEvent.pointerUp(window, { pointerId: 2, clientY: 216 });
-    await waitFor(() => expect(requests).toContainEqual({ method: 'PATCH', url: '/api/blocks/2', body: { start_minute: 450, end_minute: 495 } }));
+    // The grip of the (moved) commute, now 09:00-10:00: 16 px = 15 minutes longer.
+    const commuteAgain = (await screen.findAllByRole('button', { name: /Arbeitsweg/ })).at(-1)!;
+    fireEvent.pointerDown(commuteAgain.querySelector('[data-resize]')!, { pointerId: 2, pointerType: 'mouse', button: 0, clientX: 200, clientY: 200 });
+    fireEvent.pointerMove(window, { pointerId: 2, clientX: 200, clientY: 216 });
+    fireEvent.pointerUp(window, { pointerId: 2, clientX: 200, clientY: 216 });
+    await waitFor(() => expect(requests.some((r) => r.method === 'PATCH' && r.url === '/api/blocks/3' && (r.body as { end_minute: number }).end_minute === 615)).toBe(true));
+
+    // Pulling breakfast down stops where the bath begins (07:30) - no thin overlap.
+    const breakfast = (await screen.findAllByRole('button', { name: /Frühstück/ })).at(-1)!;
+    fireEvent.pointerDown(breakfast.querySelector('[data-resize]')!, { pointerId: 5, pointerType: 'mouse', button: 0, clientX: 200, clientY: 300 });
+    fireEvent.pointerMove(window, { pointerId: 5, clientX: 200, clientY: 364 });
+    fireEvent.pointerUp(window, { pointerId: 5, clientX: 200, clientY: 364 });
+    expect(requests.some((r) => r.method === 'PATCH' && r.url === '/api/blocks/1')).toBe(false);
+
+    // On touch the grip needs a long press: a finger moving at once is scrolling.
+    fireEvent.pointerDown(commuteAgain.querySelector('[data-resize]')!, { pointerId: 6, pointerType: 'touch', button: 0, clientX: 200, clientY: 200 });
+    fireEvent.pointerMove(window, { pointerId: 6, clientX: 200, clientY: 260 });
+    fireEvent.pointerUp(window, { pointerId: 6, clientX: 200, clientY: 260 });
+    expect(requests.filter((r) => r.method === 'PATCH' && r.url === '/api/blocks/3')).toHaveLength(2);
   });
 
   it('switches the day to pushing back', async () => {
@@ -213,5 +226,28 @@ describe('App', () => {
     expect(within(current).getByText('Team-Meeting')).toBeInTheDocument();
     expect(within(current).getByText(/Aus deinem Kalender „Arbeit“/)).toBeInTheDocument();
     expect(within(current).queryByRole('button', { name: '+15 min' })).not.toBeInTheDocument();
+  });
+
+  it('deletes without asking and brings the block back on undo', async () => {
+    const user = userEvent.setup();
+    renderApp('/day');
+    await user.click((await screen.findAllByRole('button', { name: /Arbeitsweg/ })).at(-1)!);
+    await user.click(await screen.findByRole('button', { name: 'Löschen' }));
+    await waitFor(() => expect(requests).toContainEqual({ method: 'DELETE', url: '/api/blocks/3', body: undefined }));
+    const note = await screen.findByText('„Arbeitsweg“ gelöscht.');
+    await user.click(within(note.parentElement!).getByRole('button', { name: 'Rückgängig' }));
+    await waitFor(() =>
+      expect(requests).toContainEqual({ method: 'POST', url: '/api/days/2026-11-10/blocks', body: { start_minute: 480, end_minute: 540, title: 'Arbeitsweg', category: 'commute' } }),
+    );
+  });
+
+  it('opens a new block that ends where the next one begins', async () => {
+    renderApp('/day');
+    const grid = await screen.findByLabelText('Zeitleiste');
+    // Tapping 06:45 (12 px + 6.75 h): an hour would run into breakfast at 07:00.
+    fireEvent.click(grid, { clientX: 200, clientY: 12 + 6.75 * 64 + 2 });
+    expect(await screen.findByLabelText('Beginn')).toHaveValue('06:45');
+    expect(screen.getByLabelText('Ende')).toHaveValue('07:00');
+    expect(screen.getByRole('combobox', { name: 'Art' })).toHaveValue('other');
   });
 });

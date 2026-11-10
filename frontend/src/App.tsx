@@ -7,7 +7,7 @@ import { AppFooter } from './components/AppFooter';
 import { Icon } from './components/AccountMenu';
 import { menuIconClass, menuItemClass, PlatformBar } from './components/PlatformBar';
 import { BottomNav, ViewLinks } from './components/Shell';
-import { ConfirmProvider } from './components/ui';
+import { ConfirmProvider, ToastProvider } from './components/ui';
 import { MorePage } from './pages/MorePage';
 import { PlannerPage } from './pages/PlannerPage';
 import { SettingsPage } from './pages/SettingsPage';
@@ -48,6 +48,7 @@ export function App() {
   const timeZone = me.data.timezone || 'Europe/Berlin';
   return (
     <ConfirmProvider>
+      <ToastProvider>
       <PlatformBar
         appName={t('app.name')}
         appIcon={<AppIcon />}
@@ -82,6 +83,7 @@ export function App() {
         <AppFooter />
       </main>
       <BottomNav />
+      </ToastProvider>
     </ConfirmProvider>
   );
 }

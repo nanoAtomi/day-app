@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useUpdateBlock, type Block } from '../api/day';
 import { look } from '../lib/categories';
-import { nowAndNext } from '../lib/plan';
+import { fitEnd, nowAndNext } from '../lib/plan';
 import { DAY_MINUTES, formatDuration, formatMinute } from '../lib/time';
 import type { SheetTarget } from './BlockSheet';
 import { SubtaskList, subtaskCount } from './SubtaskList';
@@ -30,7 +30,7 @@ export function NowPanel({ date, blocks, minute, onOpen }: { date: string; block
           <h2 className="mt-3 text-2xl font-bold tracking-tight">{blocks.length === 0 ? t('now.emptyTitle') : next ? t('now.freeTitle') : t('now.doneTitle')}</h2>
           <p className="mt-1 text-slate-500 dark:text-slate-400">{blocks.length === 0 ? t('now.emptyText') : (freeUntil ?? t('now.doneText'))}</p>
           {blocks.length === 0 && (
-            <button type="button" className={`${primaryButton} mt-5`} onClick={() => onOpen(newBlockAt(minute))}>
+            <button type="button" className={`${primaryButton} mt-5`} onClick={() => onOpen(newBlockAt(minute, blocks))}>
               {t('now.addFirst')}
             </button>
           )}
@@ -137,8 +137,8 @@ function NextCard({ block, minute, units, onOpen }: { block: Block; minute: numb
   );
 }
 
-/** A new hour-long block from the next quarter hour on. */
-export function newBlockAt(minute: number): SheetTarget {
-  const start = Math.min(DAY_MINUTES - 60, Math.ceil(minute / 15) * 15);
-  return { start, end: start + 60 };
+/** A new block from the next quarter hour on: an hour, or up to the next block. */
+export function newBlockAt(minute: number, blocks: Block[] = []): SheetTarget {
+  const start = Math.min(DAY_MINUTES - 15, Math.ceil(minute / 15) * 15);
+  return { start, end: fitEnd(blocks, start) };
 }
