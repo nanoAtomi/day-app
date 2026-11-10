@@ -21,9 +21,10 @@ What the app is for and for whom - product decisions, kept current. Architecture
 | Running late | Delay mode `fixed` (blocks stay put) or `cascade`: a block running over (+15 min, its edge pulled down, or done late today) pushes the following open blocks back just far enough that nothing overlaps - a gap absorbs the delay; done blocks and calendar entries stay. Moving a block is placing it, never running over. Default in Settings, switchable per day |
 | Day timeline | The whole day from 0:00 to 24:00; opening Day scrolls to now (other days: the first block). Tap a free spot to add a block, or hold it: a new hour-long block follows the finger, letting go opens it, letting go over the hours on the left cancels. Blocks move after a long press and resize at their bottom edge; near the screen's top or bottom the page scrolls along |
 | Calendars | Read-only ICS subscriptions (Outlook "publish", iCloud public link, Google secret address), synced every 15 minutes for yesterday to two weeks ahead; appointments are hatched blocks in the calendar's colour, all-day events left out. A company Outlook may not allow publishing - then manual blocks |
+| Statistics | A block counts once it is over: done for the plan, skipped and left open against it. A good day has 80 % or more done; the streak counts good days back from today, days with nothing planned neither count nor break it. Often skipped: titles skipped at least twice in four weeks |
 | Categories | Meal, self-care, commute, work, chores, sport, free time, other - each with an emoji and a colour |
 | Devices | Phone and desktop; PWA (installable); Web Push at a block's start and optionally before (iPhone: installed app only); offline not planned |
-| Views | Phone and tablet: bottom navigation Now · Day · Week · More (templates; later statistics, settings). Desktop (from `lg`): top navigation Today · Week · Templates; "Now" on the left, the day's timeline on the right |
+| Views | Phone and tablet: bottom navigation Now · Day · Week · More (templates, statistics, settings). Desktop (from `lg`): top navigation Today · Week · Templates · Statistics; "Now" on the left, the day's timeline on the right |
 | Languages | DE + EN (the app is called "Tag" in German) |
 | Platform | repo `nanoAtomi/day-app`, slug `day`, icon 🕘; portal link, sign-out, feedback; showcase on nicasso.de/apps/day |
 
