@@ -4,16 +4,17 @@ from tests.conftest import as_user
 
 ALICE = as_user("alice")
 BOB = as_user("bob")
-DAY = "2026-11-10"
+# A past day starts empty (no template) - these tests are about blocks themselves.
+DAY = "2020-01-07"
 
 
 def add(client, start, end, title="Arbeit", category="work", headers=ALICE, on=DAY):
     return client.post(f"/api/days/{on}/blocks", json={"start_minute": start, "end_minute": end, "title": title, "category": category}, headers=headers)
 
 
-def test_new_day_is_empty_with_the_users_delay_mode(client):
+def test_new_past_day_is_empty_with_the_users_delay_mode(client):
     day = client.get(f"/api/days/{DAY}", headers=ALICE).json()
-    assert day == {"date": DAY, "template_id": None, "delay_mode": "fixed", "delay_mode_override": None, "blocks": []}
+    assert day == {"date": DAY, "stored": True, "template_id": None, "delay_mode": "fixed", "delay_mode_override": None, "blocks": []}
 
 
 def test_blocks_come_sorted_by_start(client):

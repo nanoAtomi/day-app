@@ -1,12 +1,14 @@
 """Days and their blocks.
 
-A day is created on first access. Blocks from a calendar (source `calendar`) are
-read-only here: only their status can change. Every query goes through the owner, so
-one person never sees or changes another person's day.
+A day is created on first access - from today on as a copy of its weekday's template
+(past days start empty: the plan must not pretend something happened). Blocks from a
+calendar (source `calendar`) are read-only here: only their status can change. Every
+query goes through the owner, so one person never sees or changes another person's day.
 """
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
+from zoneinfo import ZoneInfo
 
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import BaseModel, Field, model_validator
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -14,7 +16,8 @@ from sqlalchemy.orm import Session
 
 from ..auth import current_user
 from ..db import get_db
-from ..models import BLOCK_STATUSES, CATEGORIES, Block, Day, User, utcnow
+from ..models import BLOCK_STATUSES, CATEGORIES, Block, Day, Subtask, Template, User, WeekdayAssignment, utcnow
+from .templates import own_template
 
 router = APIRouter(prefix="/api", tags=["days"])
 
@@ -43,6 +46,8 @@ class BlockOut(BaseModel):
 
 class DayOut(BaseModel):
     date: date
+    # False: not opened yet - a preview of what its template would bring (week view).
+    stored: bool = True
     template_id: int | None
     # The mode in effect, and the day's own choice (None = the user's default).
     delay_mode: str
@@ -66,6 +71,17 @@ class BlockCreate(BlockTimes):
         _check_category(self.category)
         _check_span(self.start_minute, self.end_minute)
         return self
+
+
+class DayTemplateIn(BaseModel):
+    # None = no template: the day keeps only its own and calendar blocks.
+    template_id: int | None
+
+
+class ModuleIn(BaseModel):
+    template_id: int
+    # Where the module's first block starts; the others keep their distance to it.
+    start_minute: int = Field(ge=0, lt=DAY_MINUTES)
 
 
 class BlockUpdate(BlockTimes):
@@ -109,11 +125,43 @@ def _day(day: Day, user: User) -> DayOut:
     )
 
 
+def today(user: User) -> date:
+    return datetime.now(ZoneInfo(user.timezone)).date()
+
+
+def weekday_template(db: Session, user: User, on: date) -> Template | None:
+    """The day template the date's weekday starts from - only from today on."""
+    if on < today(user):
+        return None
+    assignment = db.get(WeekdayAssignment, (user.id, on.weekday()))
+    return db.get(Template, assignment.template_id) if assignment else None
+
+
+def copy_blocks(template: Template, shift: int = 0, source: str = "template") -> list[Block]:
+    """Copies of a template's blocks - changing them never changes the template."""
+    blocks = []
+    for tb in template.blocks:
+        block = Block(
+            start_minute=tb.start_minute + shift,
+            end_minute=tb.start_minute + shift + tb.duration_minutes,
+            title=tb.title,
+            category=tb.category,
+            source=source,
+            status="open",
+        )
+        block.subtasks = [Subtask(title=title, position=i) for i, title in enumerate(tb.subtasks or [])]
+        blocks.append(block)
+    return blocks
+
+
 def get_or_create_day(db: Session, user: User, on: date) -> Day:
     day = db.scalar(select(Day).where(Day.owner_id == user.id, Day.date == on))
     if day is not None:
         return day
-    day = Day(owner_id=user.id, date=on)
+    template = weekday_template(db, user, on)
+    day = Day(owner_id=user.id, date=on, template_id=template.id if template else None)
+    if template:
+        day.blocks = copy_blocks(template)
     db.add(day)
     try:
         db.commit()
@@ -129,6 +177,77 @@ def _own_block(db: Session, user: User, block_id: int) -> Block:
     if block is None:
         raise HTTPException(status_code=404, detail="Block not found")
     return block
+
+
+MAX_RANGE_DAYS = 14
+
+
+@router.get("/days", response_model=list[DayOut])
+def list_days(
+    start: date = Query(alias="from"),
+    days: int = Query(default=7, ge=1, le=MAX_RANGE_DAYS),
+    user: User = Depends(current_user),
+    db: Session = Depends(get_db),
+) -> list[DayOut]:
+    """Several days at once (week view). Days not opened yet are previews - nothing is
+    stored, so a template changed in the meantime still applies when the day is opened."""
+    end = start + timedelta(days=days - 1)
+    stored = {d.date: d for d in db.scalars(select(Day).where(Day.owner_id == user.id, Day.date >= start, Day.date <= end))}
+    result = []
+    for i in range(days):
+        on = start + timedelta(days=i)
+        if on in stored:
+            result.append(_day(stored[on], user))
+            continue
+        template = weekday_template(db, user, on)
+        preview = copy_blocks(template) if template else []
+        result.append(
+            DayOut(
+                date=on,
+                stored=False,
+                template_id=template.id if template else None,
+                delay_mode=user.delay_mode,
+                delay_mode_override=None,
+                blocks=[
+                    BlockOut(id=-(n + 1), start_minute=b.start_minute, end_minute=b.end_minute, title=b.title, category=b.category,
+                             source=b.source, status=b.status, actual_start=None, actual_end=None, subtasks=[])
+                    for n, b in enumerate(preview)
+                ],
+            )
+        )
+    return result
+
+
+@router.put("/days/{on}/template", response_model=DayOut)
+def set_day_template(on: date, body: DayTemplateIn, user: User = Depends(current_user), db: Session = Depends(get_db)) -> DayOut:
+    """Switches the day to another template: the blocks of the old one go, the new one's
+    come in; blocks added by hand (modules too) and calendar blocks stay."""
+    template = own_template(db, user, body.template_id, kind="day") if body.template_id is not None else None
+    day = get_or_create_day(db, user, on)
+    for block in [b for b in day.blocks if b.source == "template"]:
+        day.blocks.remove(block)
+    day.template_id = template.id if template else None
+    if template:
+        day.blocks.extend(copy_blocks(template))
+    db.commit()
+    db.refresh(day)
+    return _day(day, user)
+
+
+@router.post("/days/{on}/modules", response_model=DayOut, status_code=201)
+def insert_module(on: date, body: ModuleIn, user: User = Depends(current_user), db: Session = Depends(get_db)) -> DayOut:
+    """Inserts a module (e.g. training) into the day; its blocks count as the day's own."""
+    module = own_template(db, user, body.template_id, kind="module")
+    if not module.blocks:
+        raise HTTPException(status_code=422, detail="The module has no blocks")
+    shift = body.start_minute - min(b.start_minute for b in module.blocks)
+    if max(b.start_minute + b.duration_minutes for b in module.blocks) + shift > DAY_MINUTES:
+        raise HTTPException(status_code=422, detail="The module would run past midnight")
+    day = get_or_create_day(db, user, on)
+    day.blocks.extend(copy_blocks(module, shift=shift, source="manual"))
+    db.commit()
+    db.refresh(day)
+    return _day(day, user)
 
 
 @router.get("/days/{on}", response_model=DayOut)
