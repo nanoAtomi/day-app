@@ -27,7 +27,7 @@ Browser / installed PWA ──HTTPS──▶ Traefik ─▶ oauth2-proxy (Keyclo
 portal-api ──internal──▶ app-day /api/platform/users/* (export and delete of a person)
 ```
 
-Later: ICS calendar URLs (read, step 6) and push services of the browsers (Web Push, step 5).
+Push notifications go out through the browsers' push services (Web Push, VAPID). Later: ICS calendar URLs (read, step 6).
 
 ## 5. Building blocks
 
@@ -37,6 +37,7 @@ Later: ICS calendar URLs (read, step 6) and push services of the browsers (Web P
 | Identity | `backend/app/auth.py` | the user from the gateway headers, created on first sight |
 | Days and blocks | `backend/app/api/days.py` | day of a date (created on first access from its weekday's template), week previews, switching a day's template, inserting a module, blocks: add, change, status, delete |
 | Subtasks | `backend/app/api/subtasks.py` | a block's subtasks: add, tick, rename, delete (through the block's day owner) |
+| Notifications | `backend/app/notify.py`, `push.py`, `api/push.py` | scheduler thread (every minute): block start and advance notice per device, sent once; device subscriptions, test notice |
 | Templates | `backend/app/api/templates.py`, `backend/app/seed.py` | day templates and modules with their blocks, weekday assignment; starter templates once per user |
 | Me | `backend/app/api/me.py` | the user, platform links and settings (delay mode, lead time, time zone) |
 | Your data | `backend/app/platform_data.py` | export and delete for the portal |
@@ -63,3 +64,4 @@ One image `ghcr.io/nanoatomi/day-app` (Node builds the SPA, Python serves it and
 | ADR | Decision |
 |---|---|
 | [0001](adr/0001-golden-path-one-container.md) | Golden path: FastAPI + React in one container; local times as minutes |
+| [0002](adr/0002-web-push-and-in-process-scheduler.md) | Web Push (VAPID) from an in-process scheduler |

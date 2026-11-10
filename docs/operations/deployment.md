@@ -6,6 +6,7 @@ How Day gets from a merge to https://day.nicasso.de, and the one-time setup in t
 
 - [Release pipeline](#release-pipeline)
 - [One-time setup](#one-time-setup)
+- [Notifications](#notifications)
 - [Installing on the phone](#installing-on-the-phone)
 
 ## Release pipeline
@@ -28,9 +29,27 @@ Done once before the first deploy (the user clicks; agents can't reach the porta
 5. **Admin → Users**: add the people who may use Day to `/apps/day`.
 6. GitHub → Actions → **Deploy** → Run workflow once (later releases deploy themselves).
 
-Day needs no secret variables yet. Web Push (plan 0001, step 5) will add `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT`.
+Secret variables: the Web Push keys, see [Notifications](#notifications).
+
+## Notifications
+
+Day pushes a notice when a block starts and, if chosen in Settings, a few minutes before. A scheduler thread in the app checks every minute ([ADR 0002](../architecture/adr/0002-web-push-and-in-process-scheduler.md)).
+
+One-time setup:
+
+1. Make a VAPID key pair (any machine with Python and `cryptography`):
+
+   ```bash
+   python -c "import base64;from cryptography.hazmat.primitives.asymmetric import ec;from cryptography.hazmat.primitives import serialization as s;k=ec.generate_private_key(ec.SECP256R1());b=lambda x:base64.urlsafe_b64encode(x).rstrip(b'=').decode();print('VAPID_PUBLIC_KEY='+b(k.public_key().public_bytes(s.Encoding.X962,s.PublicFormat.UncompressedPoint)));print('VAPID_PRIVATE_KEY='+b(k.private_numbers().private_value.to_bytes(32,'big')))"
+   ```
+
+2. Portal → **Admin → Apps → Day → Setup → Variables**: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` (mark as secret) and `VAPID_SUBJECT` = `mailto:<your address>`.
+3. Deploy once (GitHub → Actions → **Deploy** → Run workflow), so the container gets the variables.
+4. In the app: **Mehr → Einstellungen → Benachrichtigungen → Auf diesem Gerät einschalten**, then "Test senden".
+
+Changing the keys later invalidates every device's subscription - turn notifications on again per device.
 
 ## Installing on the phone
 
-- **iPhone/iPad:** Safari → Share → **Add to Home Screen**. Push notifications (later) only reach the installed app (iOS 16.4+).
+- **iPhone/iPad:** Safari → Share → **Add to Home Screen**. Notifications only reach the installed app (iOS 16.4+).
 - **Android, Chrome, Edge:** "Install app" in the browser menu.
