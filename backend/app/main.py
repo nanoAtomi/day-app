@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from . import platform_data
-from .api import days, me, templates
+from .api import days, me, subtasks, templates
 from .config import settings
 from .db import run_migrations
 
@@ -71,6 +71,7 @@ def health() -> dict:
 app.include_router(me.router)
 app.include_router(days.router)
 app.include_router(templates.router)
+app.include_router(subtasks.router)
 app.include_router(platform_data.router)  # export + delete for the portal (contract.md, "Your data")
 
 
