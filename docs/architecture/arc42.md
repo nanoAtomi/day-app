@@ -36,6 +36,7 @@ Later: ICS calendar URLs (read, step 6) and push services of the browsers (Web P
 | App | `backend/app/main.py` | FastAPI app: CSRF check, security and cache headers, health, routers, the SPA |
 | Identity | `backend/app/auth.py` | the user from the gateway headers, created on first sight |
 | Days and blocks | `backend/app/api/days.py` | day of a date (created on first access from its weekday's template), week previews, switching a day's template, inserting a module, blocks: add, change, status, delete |
+| Subtasks | `backend/app/api/subtasks.py` | a block's subtasks: add, tick, rename, delete (through the block's day owner) |
 | Templates | `backend/app/api/templates.py`, `backend/app/seed.py` | day templates and modules with their blocks, weekday assignment; starter templates once per user |
 | Me | `backend/app/api/me.py` | the user, platform links and settings (delay mode, lead time, time zone) |
 | Your data | `backend/app/platform_data.py` | export and delete for the portal |
