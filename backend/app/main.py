@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from . import notify, platform_data
-from .api import days, me, push, subtasks, templates
+from .api import calendars, days, me, push, subtasks, templates
 from .config import settings
 from .db import run_migrations
 
@@ -80,6 +80,7 @@ app.include_router(days.router)
 app.include_router(templates.router)
 app.include_router(subtasks.router)
 app.include_router(push.router)
+app.include_router(calendars.router)
 app.include_router(platform_data.router)  # export + delete for the portal (contract.md, "Your data")
 
 

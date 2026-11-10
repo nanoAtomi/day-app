@@ -171,3 +171,41 @@ class NotificationLog(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     key: Mapped[str] = mapped_column(String(200))
     sent_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class CalendarSource(Base):
+    """A calendar subscribed by its ICS address (Outlook "publish", iCloud public link,
+    Google's secret iCal address). The address works like a password: it is never shown
+    in full again, logged or exported."""
+
+    __tablename__ = "calendar_sources"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    name: Mapped[str] = mapped_column(String(120))
+    url: Mapped[str] = mapped_column(Text)
+    color: Mapped[str] = mapped_column(String(16), default="slate")
+    last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # What went wrong the last time, for the settings page (None = it worked).
+    last_error: Mapped[str | None] = mapped_column(String(300))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+    events: Mapped[list["CalendarEvent"]] = relationship(cascade="all, delete-orphan", passive_deletes=True)
+
+
+class CalendarEvent(Base):
+    """One appointment on one day, as the last sync saw it. Shown as a read-only block -
+    kept apart from the day's own blocks, so a sync never creates days early or touches
+    what was planned by hand."""
+
+    __tablename__ = "calendar_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    source_id: Mapped[int] = mapped_column(ForeignKey("calendar_sources.id", ondelete="CASCADE"), index=True)
+    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    date: Mapped[date] = mapped_column(Date)
+    start_minute: Mapped[int] = mapped_column(Integer)
+    end_minute: Mapped[int] = mapped_column(Integer)
+    title: Mapped[str] = mapped_column(String(200))
+    # Stable across syncs (the event's UID and its start): notification keys use it.
+    key: Mapped[str] = mapped_column(String(64))
