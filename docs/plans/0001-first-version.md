@@ -52,8 +52,8 @@ Phone: bottom navigation Now, Day, Week, More. Desktop: Now on the left, the day
 
 | Step | Result | Status |
 |---|---|---|
-| **1** Skeleton | repo from the blueprint (gateway auth, CSRF, security headers, health, `/api/me`, "Your data", DE/EN shell, legal pages, PWA manifest, `portal.yml` with showcase, build + deploy workflows); data model with all planning tables; manual blocks (add, edit, delete, done/skip, +15 min); Now and Day views | in review |
-| **2** Templates | templates and modules, weekday assignment, days created from templates, seed templates, Week and Templates views | |
+| **1** Skeleton | repo from the blueprint (gateway auth, CSRF, security headers, health, `/api/me`, "Your data", DE/EN shell, legal pages, PWA manifest, `portal.yml` with showcase, build + deploy workflows); data model with all planning tables; manual blocks (add, edit, delete, done/skip, +15 min); Now and Day views | done ([#1](https://github.com/nanoAtomi/day-app/pull/1)) |
+| **2** Templates | templates and modules (CRUD, same timeline editor as a day), weekday assignment, days created from their weekday's template from today on, week previews that store nothing, switching a day's template (own blocks and modules stay), inserting a module at a chosen time, starter templates once per user; Week, Templates and More views | in review |
 | **3** Drag & drop | move and resize on the timeline, delay mode `cascade` | |
 | **4** Subtasks | per block, from the template's titles; tick off on Now | |
 | **5** Web Push | VAPID, scheduler, at start and X minutes before; settings | |
