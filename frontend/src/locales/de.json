@@ -199,5 +199,12 @@
       "fixed": "Aus – Blöcke bleiben, wo sie sind.",
       "cascade": "An – überzieht ein Block, rutschen die nächsten nach."
     }
+  },
+  "subtasks": {
+    "title": "Unteraufgaben",
+    "new": "Neue Unteraufgabe",
+    "placeholder": "Unteraufgabe hinzufügen",
+    "add": "Unteraufgabe hinzufügen",
+    "remove": "„{{title}}“ entfernen"
   }
 }

@@ -249,3 +249,40 @@ export function useUpdateMe() {
     onSettled: () => void queryClient.invalidateQueries({ queryKey: ['day'] }),
   });
 }
+
+// ------------------------------------------------------------- subtasks
+
+const withSubtasks = (day: Day, blockId: number, change: (subtasks: Subtask[]) => Subtask[]): Day => ({
+  ...day,
+  blocks: day.blocks.map((b) => (b.id === blockId ? { ...b, subtasks: change(b.subtasks) } : b)),
+});
+
+export function useAddSubtask(date: string) {
+  return useDayMutation(
+    date,
+    ({ blockId, title }: { blockId: number; title: string }) => api<Subtask>(`/api/blocks/${blockId}/subtasks`, { method: 'POST', body: { title } }),
+    (day, { blockId, title }) => withSubtasks(day, blockId, (list) => [...list, { id: -Date.now(), title, done: false }]),
+  );
+}
+
+export function useUpdateSubtask(date: string) {
+  return useDayMutation(
+    date,
+    ({ id, ...change }: { id: number; blockId: number; title?: string; done?: boolean }) => {
+      const body: { title?: string; done?: boolean } = {};
+      if (change.title !== undefined) body.title = change.title;
+      if (change.done !== undefined) body.done = change.done;
+      return api<Subtask>(`/api/subtasks/${id}`, { method: 'PATCH', body });
+    },
+    (day, { id, blockId, title, done }) =>
+      withSubtasks(day, blockId, (list) => list.map((s) => (s.id === id ? { ...s, ...(title !== undefined ? { title } : {}), ...(done !== undefined ? { done } : {}) } : s))),
+  );
+}
+
+export function useDeleteSubtask(date: string) {
+  return useDayMutation(
+    date,
+    ({ id }: { id: number; blockId: number }) => api<null>(`/api/subtasks/${id}`, { method: 'DELETE' }),
+    (day, { id, blockId }) => withSubtasks(day, blockId, (list) => list.filter((s) => s.id !== id)),
+  );
+}

@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import { useCreateBlock, useDeleteBlock, useUpdateBlock, type Block, type BlockStatus } from '../api/day';
+import { useCreateBlock, useDay, useDeleteBlock, useUpdateBlock, type Block, type BlockStatus } from '../api/day';
 import { formatMinute } from '../lib/time';
 import { BlockForm } from './BlockForm';
+import { SubtaskList } from './SubtaskList';
 import { Dialog, fieldLabel, useConfirm } from './ui';
 
 export type SheetTarget = { block: Block } | { start: number; end: number };
@@ -12,7 +13,10 @@ const STATUSES: BlockStatus[] = ['open', 'done', 'skipped'];
 export function BlockSheet({ date, target, onClose }: { date: string; target: SheetTarget; onClose: () => void }) {
   const { t } = useTranslation();
   const confirm = useConfirm();
-  const existing = 'block' in target ? target.block : null;
+  const opened = 'block' in target ? target.block : null;
+  // Subtasks change while the sheet is open: always show the day's current copy of the block.
+  const day = useDay(date);
+  const existing = opened ? (day.data?.blocks.find((b) => b.id === opened.id) ?? opened) : null;
   const create = useCreateBlock(date);
   const update = useUpdateBlock(date);
   const remove = useDeleteBlock(date);
@@ -55,6 +59,14 @@ export function BlockSheet({ date, target, onClose }: { date: string; target: Sh
           onClose();
         }}
       >
+        {existing && (
+          <div>
+            <span className={fieldLabel}>{t('subtasks.title')}</span>
+            <div className="mt-1">
+              <SubtaskList date={date} block={existing} editable />
+            </div>
+          </div>
+        )}
         {existing && (
           <div role="radiogroup" aria-label={t('block.status')}>
             <span className={fieldLabel}>{t('block.status')}</span>
