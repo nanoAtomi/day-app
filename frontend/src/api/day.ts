@@ -80,7 +80,10 @@ function useDayMutation<V>(date: string, request: (vars: V) => Promise<unknown>,
     onError: (_error, _vars, context) => {
       if (context?.before) queryClient.setQueryData(dayKey(date), context.before);
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: dayKey(date) }),
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: dayKey(date) });
+      void queryClient.invalidateQueries({ queryKey: ['week'] });
+    },
   });
 }
 
@@ -111,5 +114,119 @@ export function useDeleteBlock(date: string) {
     date,
     (id: number) => api<null>(`/api/blocks/${id}`, { method: 'DELETE' }),
     (day, id) => ({ ...day, blocks: day.blocks.filter((b) => b.id !== id) }),
+  );
+}
+
+// ------------------------------------------------------------- templates
+
+export interface TemplateBlock {
+  id: number;
+  start_minute: number;
+  duration_minutes: number;
+  title: string;
+  category: string;
+  subtasks: string[];
+}
+
+export type TemplateKind = 'day' | 'module';
+
+export interface Template {
+  id: number;
+  name: string;
+  color: string;
+  icon: string;
+  kind: TemplateKind;
+  /** Weekdays (0 = Monday) that start from this template. */
+  weekdays: number[];
+  blocks: TemplateBlock[];
+}
+
+export interface TemplateInput {
+  name: string;
+  color: string;
+  icon: string;
+  kind?: TemplateKind;
+}
+
+export type TemplateBlockInput = Omit<TemplateBlock, 'id'>;
+
+export function useTemplates() {
+  return useQuery({ queryKey: ['templates'], queryFn: () => api<Template[]>('/api/templates') });
+}
+
+/** Weeks and not-yet-opened days are previews of the templates: refresh them after a change. */
+function useTemplateMutation<V, R>(request: (vars: V) => Promise<R>, onDone?: (result: R) => void) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: request,
+    onSuccess: (result) => onDone?.(result),
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: ['templates'] });
+      void queryClient.invalidateQueries({ queryKey: ['week'] });
+    },
+  });
+}
+
+export function useCreateTemplate(onCreated?: (t: Template) => void) {
+  return useTemplateMutation((input: TemplateInput) => api<Template>('/api/templates', { method: 'POST', body: input }), onCreated);
+}
+
+export function useUpdateTemplate() {
+  return useTemplateMutation(({ id, ...input }: Partial<TemplateInput> & { id: number }) => api<Template>(`/api/templates/${id}`, { method: 'PATCH', body: input }));
+}
+
+export function useDeleteTemplate() {
+  return useTemplateMutation((id: number) => api<null>(`/api/templates/${id}`, { method: 'DELETE' }));
+}
+
+export function useAddTemplateBlock(templateId: number) {
+  return useTemplateMutation((input: TemplateBlockInput) => api<Template>(`/api/templates/${templateId}/blocks`, { method: 'POST', body: input }));
+}
+
+export function useUpdateTemplateBlock() {
+  return useTemplateMutation(({ id, ...input }: Partial<TemplateBlockInput> & { id: number }) => api<Template>(`/api/template-blocks/${id}`, { method: 'PATCH', body: input }));
+}
+
+export function useDeleteTemplateBlock() {
+  return useTemplateMutation((id: number) => api<Template>(`/api/template-blocks/${id}`, { method: 'DELETE' }));
+}
+
+export function useSetWeekday() {
+  return useTemplateMutation(({ weekday, templateId }: { weekday: number; templateId: number | null }) =>
+    api<null>(`/api/weekdays/${weekday}`, { method: 'PUT', body: { template_id: templateId } }),
+  );
+}
+
+// ------------------------------------------------------------- week and day templates
+
+export interface WeekDay extends Day {
+  /** False: not opened yet - a preview of its template. */
+  stored: boolean;
+}
+
+export function useWeek(from: string) {
+  return useQuery({ queryKey: ['week', from], queryFn: () => api<WeekDay[]>(`/api/days?from=${from}&days=7`) });
+}
+
+/** A day changed as a whole: show the answer at once and refresh the week around it. */
+function useWholeDayMutation<V>(date: string, request: (vars: V) => Promise<Day>) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: request,
+    onSuccess: (day) => queryClient.setQueryData(dayKey(date), day),
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: dayKey(date) });
+      void queryClient.invalidateQueries({ queryKey: ['week'] });
+    },
+  });
+}
+
+export function useSetDayTemplate(date: string) {
+  return useWholeDayMutation(date, (templateId: number | null) => api<Day>(`/api/days/${date}/template`, { method: 'PUT', body: { template_id: templateId } }));
+}
+
+export function useInsertModule(date: string) {
+  return useWholeDayMutation(date, ({ templateId, start }: { templateId: number; start: number }) =>
+    api<Day>(`/api/days/${date}/modules`, { method: 'POST', body: { template_id: templateId, start_minute: start } }),
   );
 }

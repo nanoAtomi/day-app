@@ -26,7 +26,7 @@ interface Props {
   /** An emoji, or a small element (e.g. the app's gradient tile). */
   appIcon: ReactNode;
   user: PlatformUser;
-  /** The app's views (from md up; phones and small tablets use the bottom nav). */
+  /** The app's views (from lg up; phones and tablets use the bottom nav). */
   nav?: ReactNode;
   navLabel?: string;
   /** Desktop-only extras next to the avatar, e.g. the app's main call to action. */
@@ -49,9 +49,9 @@ export function PlatformBar({ appName, appIcon, user, nav, navLabel, actions, me
           </>
         )}
         <AppHomeLink appName={appName} appIcon={appIcon} />
-        {nav && <nav aria-label={navLabel ?? appName} className="ml-4 hidden items-center gap-1 md:flex">{nav}</nav>}
+        {nav && <nav aria-label={navLabel ?? appName} className="ml-4 hidden items-center gap-1 lg:flex">{nav}</nav>}
         <div className="ml-auto flex items-center gap-3">
-          {actions && <div className="hidden items-center gap-3 md:flex">{actions}</div>}
+          {actions && <div className="hidden items-center gap-3 lg:flex">{actions}</div>}
           <AccountMenu user={user} items={menuItems} />
         </div>
       </div>

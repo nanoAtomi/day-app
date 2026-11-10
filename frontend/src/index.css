@@ -166,3 +166,18 @@ select.app-field {
   transition: none !important;
 }
 
+
+/* Mini timelines of the week view: a strip on phones, a column from md up. */
+[data-mini] {
+  left: var(--from);
+  width: var(--size);
+}
+
+@media (width >= 48rem) {
+  :root:not(.phone) [data-mini] {
+    left: 0;
+    width: auto;
+    top: var(--from);
+    height: var(--size);
+  }
+}
