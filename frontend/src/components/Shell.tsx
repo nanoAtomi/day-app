@@ -24,6 +24,7 @@ const DESKTOP: { to: string; key: string; end: boolean }[] = [
   { to: '/', key: 'today', end: true },
   { to: '/week', key: 'week', end: false },
   { to: '/templates', key: 'templates', end: false },
+  { to: '/stats', key: 'stats', end: false },
 ];
 
 export function ViewLinks() {

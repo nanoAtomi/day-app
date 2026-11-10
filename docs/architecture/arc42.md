@@ -39,6 +39,7 @@ Push notifications go out through the browsers' push services (Web Push, VAPID).
 | Subtasks | `backend/app/api/subtasks.py` | a block's subtasks: add, tick, rename, delete (through the block's day owner) |
 | Notifications | `backend/app/notify.py`, `push.py`, `api/push.py` | scheduler thread (every minute): block start and advance notice per device, sent once; device subscriptions, test notice |
 | Calendars | `backend/app/calendar_sync.py`, `api/calendars.py` | safe ICS fetching, parsing (recurring, over midnight), sync every 15 minutes; subscriptions in Settings (address write-only) |
+| Statistics | `backend/app/api/stats.py` | share done per day and week, streak, often skipped blocks (one request, last 4 weeks) |
 | Templates | `backend/app/api/templates.py`, `backend/app/seed.py` | day templates and modules with their blocks, weekday assignment; starter templates once per user |
 | Me | `backend/app/api/me.py` | the user, platform links and settings (delay mode, lead time, time zone) |
 | Your data | `backend/app/platform_data.py` | export and delete for the portal |

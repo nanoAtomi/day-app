@@ -6,6 +6,7 @@ export function MorePage() {
   const { t } = useTranslation();
   const items = [
     { to: '/templates', icon: '🧩', title: t('templates.title'), text: t('templates.lead') },
+    { to: '/stats', icon: '📊', title: t('stats.title'), text: t('stats.lead') },
     { to: '/settings', icon: '⚙️', title: t('settings.title'), text: t('settings.lead') },
   ];
   return (

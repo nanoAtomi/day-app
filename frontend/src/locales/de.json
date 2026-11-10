@@ -23,7 +23,8 @@
     "today": "Heute",
     "week": "Woche",
     "more": "Mehr",
-    "templates": "Vorlagen"
+    "templates": "Vorlagen",
+    "stats": "Statistik"
   },
   "time": {
     "h": "h",
@@ -277,5 +278,24 @@
       "unreadable": "Der Kalender konnte nicht gelesen werden.",
       "too_many": "Mehr als 10 Kalender gehen nicht."
     }
+  },
+  "stats": {
+    "title": "Statistik",
+    "lead": "Wie viel vom Plan wirklich passiert ist.",
+    "streak": "Streak",
+    "days_one": "{{count}} Tag",
+    "days_other": "{{count}} Tage",
+    "streakHint": "Tage mit mindestens 80 % erledigt",
+    "thisWeek": "Diese Woche",
+    "ofDue": "{{done}} von {{total}} erledigt",
+    "perDay": "Die letzten 4 Wochen",
+    "empty": "Noch nichts abgehakt – hak Blöcke ab oder überspring sie, dann wächst hier was.",
+    "oftenSkipped": "Oft übersprungen",
+    "nothingSkipped": "Nichts, was du ständig überspringst. 👏",
+    "skippedOf": "{{skipped}}× von {{total}}",
+    "bar": "{{day}}: {{rate}} ({{done}} von {{total}})",
+    "barEmpty": "{{day}}: nichts geplant",
+    "nothingDue": "Nichts fällig.",
+    "detail": "{{done}} erledigt, {{skipped}} übersprungen, {{missed}} liegen geblieben – {{rate}}"
   }
 }

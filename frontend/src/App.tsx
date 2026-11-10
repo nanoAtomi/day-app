@@ -11,6 +11,7 @@ import { ConfirmProvider } from './components/ui';
 import { MorePage } from './pages/MorePage';
 import { PlannerPage } from './pages/PlannerPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { StatsPage } from './pages/StatsPage';
 import { TemplateEditorPage } from './pages/TemplateEditorPage';
 import { TemplatesPage } from './pages/TemplatesPage';
 import { WeekPage } from './pages/WeekPage';
@@ -75,6 +76,7 @@ export function App() {
           <Route path="/templates/:templateId" element={<TemplateEditorPage />} />
           <Route path="/more" element={<MorePage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/stats" element={<StatsPage />} />
           <Route path="*" element={<PlannerPage view="now" timeZone={timeZone} />} />
         </Routes>
         <AppFooter />
