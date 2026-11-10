@@ -4,7 +4,10 @@ import { Link } from 'react-router-dom';
 /** Phones: what doesn't fit into the bottom bar. Grows with statistics and settings. */
 export function MorePage() {
   const { t } = useTranslation();
-  const items = [{ to: '/templates', icon: '🧩', title: t('templates.title'), text: t('templates.lead') }];
+  const items = [
+    { to: '/templates', icon: '🧩', title: t('templates.title'), text: t('templates.lead') },
+    { to: '/settings', icon: '⚙️', title: t('settings.title'), text: t('settings.lead') },
+  ];
   return (
     <div className="mx-auto max-w-3xl">
       <h1 className="mb-5 text-2xl font-bold tracking-tight sm:text-3xl">{t('nav.more')}</h1>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useTemplates } from '../api/day';
+import { useTemplates, useUpdateTemplateBlock } from '../api/day';
 import type { SheetTarget } from '../components/BlockSheet';
 import { TemplateBlockSheet } from '../components/TemplateBlockSheet';
 import { TemplateSheet } from '../components/TemplateSheet';
@@ -18,6 +18,7 @@ export function TemplateEditorPage() {
   const template = templates.data?.find((x) => x.id === Number(templateId));
   const [sheet, setSheet] = useState<SheetTarget | null>(null);
   const [editing, setEditing] = useState(false);
+  const updateBlock = useUpdateTemplateBlock();
   const language = i18n.resolvedLanguage ?? 'en';
   const back = { to: '/templates', label: t('templates.title') };
 
@@ -50,7 +51,13 @@ export function TemplateEditorPage() {
         <TemplateIcon template={template} />
         <p className="text-sm text-slate-500 dark:text-slate-400">{template.blocks.length ? t('template.tapHint') : t('day.emptyHint')}</p>
       </div>
-      <Timeline blocks={templateBlocks(template)} nowMinute={null} currentId={null} onOpen={setSheet} />
+      <Timeline
+        blocks={templateBlocks(template)}
+        nowMinute={null}
+        currentId={null}
+        onOpen={setSheet}
+        onChange={(block, start, end) => updateBlock.mutate({ id: block.id, start_minute: start, duration_minutes: end - start })}
+      />
       {sheet && <TemplateBlockSheet key={JSON.stringify(sheet)} template={template} target={sheet} onClose={() => setSheet(null)} />}
       {editing && <TemplateSheet template={template} onClose={() => setEditing(false)} onDeleted={() => navigate('/templates')} />}
     </div>

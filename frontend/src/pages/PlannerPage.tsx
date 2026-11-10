@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router-dom';
-import { useDay, type Day } from '../api/day';
+import { useDay, useUpdateBlock, type Day } from '../api/day';
 import { BlockSheet, type SheetTarget } from '../components/BlockSheet';
 import { DayTools } from '../components/DayTools';
 import { NowPanel, newBlockAt } from '../components/NowPanel';
@@ -28,6 +28,7 @@ export function PlannerPage({ view, timeZone }: { view: 'now' | 'day'; timeZone:
 
   const today = useDay(clock.date);
   const shown = useDay(date);
+  const update = useUpdateBlock(date);
   const [sheet, setSheet] = useState<{ date: string; target: SheetTarget } | null>(null);
   const open = (on: string) => (target: SheetTarget) => setSheet({ date: on, target });
 
@@ -80,6 +81,7 @@ export function PlannerPage({ view, timeZone }: { view: 'now' | 'day'; timeZone:
                 nowMinute={isToday ? clock.minute : null}
                 currentId={isToday ? (nowAndNext(day.blocks, clock.minute).current?.id ?? null) : null}
                 onOpen={open(date)}
+                onChange={(block, start, end) => update.mutate({ id: block.id, start_minute: start, end_minute: end })}
               />
             </>
           )}

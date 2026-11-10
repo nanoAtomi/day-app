@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useCreateTemplate, useDeleteTemplate, useUpdateTemplate, type Template, type TemplateKind } from '../api/day';
 import { gradient, TEMPLATE_COLORS } from '../lib/templates';
-import { Dialog, field, fieldLabel, primaryButton, secondaryButton, useConfirm } from './ui';
+import { autoFocusText, Dialog, field, fieldLabel, primaryButton, secondaryButton, useConfirm } from './ui';
 
 /** Create a template, or rename one: name, icon, colour - and for a new one, day or module. */
 export function TemplateSheet({ template, onClose, onCreated, onDeleted }: { template?: Template; onClose: () => void; onCreated?: (t: Template) => void; onDeleted?: () => void }) {
@@ -63,7 +63,7 @@ export function TemplateSheet({ template, onClose, onCreated, onDeleted }: { tem
           </label>
           <label className={fieldLabel}>
             {t('template.name')}
-            <input className={`${field} mt-1.5`} value={name} maxLength={120} required autoFocus={!template} placeholder={t('template.namePlaceholder')} onChange={(e) => setName(e.target.value)} />
+            <input className={`${field} mt-1.5`} value={name} maxLength={120} required autoFocus={!template && autoFocusText()} placeholder={t('template.namePlaceholder')} onChange={(e) => setName(e.target.value)} />
           </label>
         </div>
         <fieldset>

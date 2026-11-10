@@ -1,8 +1,8 @@
-import { useEffect, useRef, type MouseEvent } from 'react';
+import { useEffect, useRef, useState, type MouseEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Block } from '../api/day';
 import { look } from '../lib/categories';
-import { placeBlocks } from '../lib/plan';
+import { dragTimes, placeBlocks, type DragMode } from '../lib/plan';
 import { DAY_MINUTES, formatMinute } from '../lib/time';
 import type { SheetTarget } from './BlockSheet';
 
@@ -10,16 +10,53 @@ import type { SheetTarget } from './BlockSheet';
 export const HOUR_PX = 64;
 const GUTTER = '3.25rem';
 const NEW_BLOCK_MINUTES = 60;
+// A finger has to rest this long on a block before it moves - otherwise the page scrolls.
+const LONG_PRESS_MS = 350;
+
+interface Drag {
+  id: number;
+  mode: DragMode;
+  pointerId: number;
+  touch: boolean;
+  y0: number;
+  start0: number;
+  end0: number;
+  start: number;
+  end: number;
+  /** Moving for real (mouse moved, long press done, or the edge grabbed). */
+  active: boolean;
+}
 
 /**
  * The day as a vertical line of hours with its blocks on it. Overlapping blocks stand side
  * by side with an amber mark; calendar entries are hatched. Tapping a block opens it,
- * tapping a free spot adds a block there.
+ * tapping a free spot adds a block there. With `onChange`, blocks move by dragging (on
+ * touch after a long press) and get longer or shorter at their bottom edge.
  */
-export function Timeline({ blocks, nowMinute, currentId, onOpen }: { blocks: Block[]; nowMinute: number | null; currentId: number | null; onOpen: (target: SheetTarget) => void }) {
+export function Timeline({
+  blocks,
+  nowMinute,
+  currentId,
+  onOpen,
+  onChange,
+}: {
+  blocks: Block[];
+  nowMinute: number | null;
+  currentId: number | null;
+  onOpen: (target: SheetTarget) => void;
+  onChange?: (block: Block, start: number, end: number) => void;
+}) {
   const { t } = useTranslation();
   const grid = useRef<HTMLDivElement>(null);
   const nowLine = useRef<HTMLDivElement>(null);
+  const [drag, setDragState] = useState<Drag | null>(null);
+  const dragRef = useRef<Drag | null>(null);
+  const pressTimer = useRef<number | undefined>(undefined);
+  const swallowClick = useRef(false);
+  const setDrag = (next: Drag | null) => {
+    dragRef.current = next;
+    setDragState(next);
+  };
 
   const first = Math.min(6 * 60, ...blocks.map((b) => b.start_minute));
   const startHour = Math.floor(first / 60);
@@ -30,6 +67,71 @@ export function Timeline({ blocks, nowMinute, currentId, onOpen }: { blocks: Blo
   useEffect(() => {
     nowLine.current?.scrollIntoView?.({ block: 'center' });
   }, []);
+
+  // While a block is held, the finger moves it instead of the page (iOS needs a
+  // non-passive listener to be stopped).
+  useEffect(() => {
+    const el = grid.current;
+    if (!el) return;
+    const hold = (event: TouchEvent) => dragRef.current?.active && event.preventDefault();
+    el.addEventListener('touchmove', hold, { passive: false });
+    return () => el.removeEventListener('touchmove', hold);
+  }, []);
+
+  const dragging = drag !== null;
+  useEffect(() => {
+    if (!dragging) return;
+    const end = () => {
+      window.clearTimeout(pressTimer.current);
+      setDrag(null);
+    };
+    const move = (event: PointerEvent) => {
+      const d = dragRef.current;
+      if (!d || event.pointerId !== d.pointerId) return;
+      const dy = event.clientY - d.y0;
+      if (!d.active) {
+        if (Math.abs(dy) < (d.touch ? 8 : 4)) return;
+        // A finger that moves before the long press is scrolling the page.
+        if (d.touch) return end();
+      }
+      const next = dragTimes(d.mode, d.start0, d.end0, (dy / HOUR_PX) * 60);
+      if (next.start !== d.start || next.end !== d.end || !d.active) setDrag({ ...d, ...next, active: true });
+    };
+    const up = (event: PointerEvent) => {
+      const d = dragRef.current;
+      if (!d || event.pointerId !== d.pointerId) return;
+      if (d.active) {
+        swallowClick.current = true;
+        window.setTimeout(() => (swallowClick.current = false), 0);
+        const block = blocks.find((b) => b.id === d.id);
+        if (block && (d.start !== d.start0 || d.end !== d.end0)) onChange?.(block, d.start, d.end);
+      }
+      end();
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    window.addEventListener('pointercancel', end);
+    return () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      window.removeEventListener('pointercancel', end);
+    };
+  }, [dragging, blocks, onChange]);
+
+  const grab = (event: ReactPointerEvent<HTMLButtonElement>, block: Block) => {
+    if (!onChange || block.source === 'calendar' || event.button > 0) return;
+    const mode: DragMode = (event.target as HTMLElement).closest('[data-resize]') ? 'resize' : 'move';
+    const touch = event.pointerType !== 'mouse';
+    const d: Drag = { id: block.id, mode, pointerId: event.pointerId, touch, y0: event.clientY, start0: block.start_minute, end0: block.end_minute, start: block.start_minute, end: block.end_minute, active: mode === 'resize' };
+    setDrag(d);
+    if (touch && mode === 'move') {
+      pressTimer.current = window.setTimeout(() => {
+        if (dragRef.current?.id !== block.id) return;
+        setDrag({ ...dragRef.current, active: true });
+        navigator.vibrate?.(10);
+      }, LONG_PRESS_MS);
+    }
+  };
 
   const addAt = (event: MouseEvent<HTMLDivElement>) => {
     if (event.target !== event.currentTarget || !grid.current) return;
@@ -52,7 +154,10 @@ export function Timeline({ blocks, nowMinute, currentId, onOpen }: { blocks: Blo
         </div>
       ))}
 
-      {placeBlocks(blocks).map(({ block, lane, lanes, overlaps }) => {
+      {placeBlocks(blocks).map(({ block: planned, lane, lanes, overlaps }) => {
+        const held = drag?.id === planned.id && drag.active ? drag : null;
+        const block = held ? { ...planned, start_minute: held.start, end_minute: held.end } : planned;
+        const movable = onChange !== undefined && block.source !== 'calendar';
         const height = Math.max(((block.end_minute - block.start_minute) / 60) * HOUR_PX - 2, 22);
         const roomy = height >= 44;
         const style = look(block.category);
@@ -60,12 +165,14 @@ export function Timeline({ blocks, nowMinute, currentId, onOpen }: { blocks: Blo
           <button
             key={block.id}
             type="button"
-            onClick={() => onOpen({ block })}
-            className={`absolute z-[1] isolate flex min-w-0 overflow-hidden rounded-xl border-l-4 bg-surface px-2 text-left text-sm shadow-sm transition hover:brightness-[0.97] active:scale-[0.99] ${style.block} ${
+            onClick={() => !swallowClick.current && onOpen({ block: planned })}
+            onPointerDown={(e) => grab(e, planned)}
+            onContextMenu={(e) => movable && e.preventDefault()}
+            className={`group absolute isolate [-webkit-touch-callout:none] ${held ? 'z-20 cursor-grabbing shadow-xl ring-2 ring-brand' : 'z-[1]'} flex min-w-0 overflow-hidden rounded-xl border-l-4 bg-surface px-2 text-left text-sm shadow-sm ${style.block} ${
               roomy ? 'flex-col justify-start py-1' : 'items-center gap-2'
             } ${block.source === 'calendar' ? 'hatched' : ''} ${block.status === 'done' ? 'opacity-55' : ''} ${block.status === 'skipped' ? 'opacity-40' : ''} ${
-              block.id === currentId ? 'ring-2 ring-brand ring-offset-1 ring-offset-canvas' : overlaps ? 'ring-2 ring-amber-500/80' : ''
-            }`}
+              held ? '' : block.id === currentId ? 'ring-2 ring-brand ring-offset-1 ring-offset-canvas' : overlaps ? 'ring-2 ring-amber-500/80' : ''
+            } ${held ? '' : 'transition hover:brightness-[0.97] active:scale-[0.99]'}`}
             style={{
               top: top(block.start_minute) + 1,
               height,
@@ -83,9 +190,18 @@ export function Timeline({ blocks, nowMinute, currentId, onOpen }: { blocks: Blo
                 </span>
               )}
             </span>
-            <span className={`shrink-0 text-xs tabular-nums opacity-75 ${roomy ? '' : 'ml-auto'}`}>
-              {formatMinute(block.start_minute)}–{formatMinute(block.end_minute)}
-            </span>
+            {/* Short and squeezed beside another block: the title gets the room, the times are in the sheet. */}
+            {(roomy || lanes === 1) && (
+              <span className={`shrink-0 text-xs tabular-nums opacity-75 ${roomy ? '' : 'ml-auto'}`}>
+                {formatMinute(block.start_minute)}–{formatMinute(block.end_minute)}
+              </span>
+            )}
+            {movable && block.status === 'open' && (
+              // The bottom edge: pull it to make the block longer or shorter.
+              <span data-resize aria-hidden className="absolute inset-x-0 bottom-0 flex h-3.5 cursor-ns-resize touch-none items-end justify-center pb-1">
+                <span className="h-1 w-8 rounded-full bg-current opacity-25 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-25" />
+              </span>
+            )}
           </button>
         );
       })}

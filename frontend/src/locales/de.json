@@ -177,5 +177,21 @@
     "title": "Baustein einfügen",
     "start": "Beginnt um",
     "insertButton": "Einfügen"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "lead": "Verzugsmodus – bald auch Hinweise und Kalender."
+  },
+  "delay": {
+    "title": "Wenn ein Block länger dauert",
+    "lead": "Gilt für jeden Tag, der nichts anderes sagt – pro Tag umschaltbar.",
+    "name": {
+      "fixed": "Fest",
+      "cascade": "Nachrutschen"
+    },
+    "hint": {
+      "fixed": "Blöcke bleiben, wo sie sind – auch wenn einer überzieht.",
+      "cascade": "Überzieht ein Block (+15 min, länger gezogen, spät erledigt), rutschen die folgenden nach hinten – bis zur nächsten Lücke."
+    }
   }
 }
