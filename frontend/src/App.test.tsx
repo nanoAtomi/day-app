@@ -70,6 +70,8 @@ describe('App', () => {
         if (url === '/api/me') return Response.json(me);
         if (url.startsWith('/api/days/')) return Response.json({ ...day, date: url.slice('/api/days/'.length) });
         if (url === '/api/templates') return Response.json([]);
+        if (/^\/api\/subtasks\/\d+$/.test(url)) return Response.json({ id: Number(url.split('/').pop()), title: 'x', done: body?.done ?? false });
+        if (/^\/api\/blocks\/\d+\/subtasks$/.test(url)) return Response.json({ id: 99, title: body.title, done: false }, { status: 201 });
         if (/^\/api\/days\/[\d-]+$/.test(url) && method === 'PATCH') {
           day = { ...day, delay_mode: body.delay_mode ?? 'fixed', delay_mode_override: body.delay_mode };
           return Response.json(day);
@@ -181,5 +183,22 @@ describe('App', () => {
     expect(screen.getAllByText('Loslassen zum Abbrechen').length).toBeGreaterThan(0);
     fireEvent.pointerUp(window, { pointerId: 4, clientX: 10, clientY: 640 });
     expect(screen.queryByRole('heading', { name: 'Neuer Block' })).not.toBeInTheDocument();
+  });
+
+  it('ticks off subtasks of the running block and adds new ones in its sheet', async () => {
+    const user = userEvent.setup();
+    day = {
+      ...day,
+      blocks: day.blocks.map((b) => (b.id === 2 ? { ...b, subtasks: [{ id: 21, title: 'Zähne putzen', done: false }, { id: 22, title: 'Anziehen', done: true }] } : b)),
+    };
+    renderApp();
+    const current = await screen.findByRole('region', { name: 'Aktueller Block' });
+    expect(within(current).getByText('1/2')).toBeInTheDocument();
+    await user.click(within(current).getByRole('checkbox', { name: 'Zähne putzen' }));
+    await waitFor(() => expect(requests).toContainEqual({ method: 'PATCH', url: '/api/subtasks/21', body: { done: true } }));
+
+    await user.click(within(current).getByRole('button', { name: /Bad\/Anziehen/ }));
+    await user.type(await screen.findByRole('textbox', { name: 'Neue Unteraufgabe' }), 'Haare föhnen{Enter}');
+    await waitFor(() => expect(requests).toContainEqual({ method: 'POST', url: '/api/blocks/2/subtasks', body: { title: 'Haare föhnen' } }));
   });
 });

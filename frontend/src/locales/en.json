@@ -199,5 +199,12 @@
       "fixed": "Off - blocks stay where they are.",
       "cascade": "On - when a block runs over, the next ones move back."
     }
+  },
+  "subtasks": {
+    "title": "Subtasks",
+    "new": "New subtask",
+    "placeholder": "Add a subtask",
+    "add": "Add subtask",
+    "remove": "Remove \"{{title}}\""
   }
 }

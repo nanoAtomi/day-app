@@ -4,6 +4,7 @@ import { look } from '../lib/categories';
 import { nowAndNext } from '../lib/plan';
 import { DAY_MINUTES, formatDuration, formatMinute } from '../lib/time';
 import type { SheetTarget } from './BlockSheet';
+import { SubtaskList, subtaskCount } from './SubtaskList';
 import { primaryButton, secondaryButton } from './ui';
 
 const EXTEND_MINUTES = 15;
@@ -74,6 +75,16 @@ export function NowPanel({ date, blocks, minute, onOpen }: { date: string; block
             <div className={`h-full rounded-full ${style.bar} transition-[width] duration-700`} style={{ width: `${progress}%` }} />
           </div>
         </div>
+
+        {current.subtasks.length > 0 && (
+          <div className="mt-5 rounded-2xl bg-surface/60 px-3 py-1 dark:bg-white/[0.04]">
+            <p className="flex justify-between pt-2 text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+              <span>{t('subtasks.title')}</span>
+              <span className="tabular-nums">{subtaskCount(current)}</span>
+            </p>
+            <SubtaskList date={date} block={current} />
+          </div>
+        )}
 
         <div className="mt-6 grid grid-cols-3 gap-2">
           <button type="button" className={`${primaryButton} gap-1.5 px-2 whitespace-nowrap`} onClick={() => update.mutate({ id: current.id, status: 'done' })}>

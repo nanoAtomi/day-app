@@ -5,6 +5,7 @@ import { look } from '../lib/categories';
 import { dragTimes, placeBlocks, type DragMode } from '../lib/plan';
 import { DAY_MINUTES, formatMinute } from '../lib/time';
 import type { SheetTarget } from './BlockSheet';
+import { subtaskCount } from './SubtaskList';
 
 /** Height of one hour on the timeline. */
 export const HOUR_PX = 64;
@@ -270,7 +271,7 @@ export function Timeline({
             className={`group absolute isolate [-webkit-touch-callout:none] ${held ? `z-20 cursor-grabbing shadow-xl ring-2 ${held.cancel ? 'opacity-50 ring-red-500' : 'ring-brand'}` : 'z-[1]'} flex min-w-0 overflow-hidden rounded-xl border-l-4 bg-surface px-2 text-left text-sm shadow-sm ${style.block} ${
               roomy ? 'flex-col justify-start py-1' : 'items-center gap-2'
             } ${block.source === 'calendar' ? 'hatched' : ''} ${block.status === 'done' ? 'opacity-55' : ''} ${block.status === 'skipped' ? 'opacity-40' : ''} ${
-              held ? '' : block.id === currentId ? 'ring-2 ring-brand ring-offset-1 ring-offset-canvas' : overlaps ? 'ring-2 ring-amber-500/80' : ''
+              held ? '' : block.id === currentId ? 'ring-2 ring-inset ring-brand' : overlaps ? 'ring-2 ring-inset ring-amber-500/80' : ''
             } ${held ? '' : 'transition hover:brightness-[0.97] active:scale-[0.99]'}`}
             style={{
               top: top(block.start_minute) + 1,
@@ -283,6 +284,7 @@ export function Timeline({
             <span className={`flex min-w-0 items-center gap-1.5 font-semibold ${block.status === 'skipped' ? 'line-through' : ''}`}>
               <span aria-hidden>{block.status === 'done' ? '✓' : style.icon}</span>
               <span className="truncate">{block.title}</span>
+              {subtaskCount(block) && <span className="shrink-0 text-xs font-normal tabular-nums opacity-70">☑ {subtaskCount(block)}</span>}
               {overlaps && (
                 <span className="text-amber-600 dark:text-amber-400" title={t('day.overlap')} aria-label={t('day.overlap')}>
                   ⚠
