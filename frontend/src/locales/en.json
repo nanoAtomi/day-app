@@ -58,9 +58,11 @@
     "previous": "Previous day",
     "next": "Next day",
     "overlap": "Overlaps",
-    "emptyHint": "Tap a time - or hold it and slide the new block where it belongs.",
+    "emptyHint": "Tap a time for a draft - drag it into place and tap it to name it.",
     "template": "Template for this day",
-    "dropToCancel": "Let go to cancel"
+    "dropToCancel": "Let go to cancel",
+    "draft": "Draft {{time}} - tap to name it, drag to move it",
+    "draftName": "Tap to name it"
   },
   "block": {
     "new": "New block",

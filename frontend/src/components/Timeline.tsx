@@ -21,6 +21,16 @@ const EDGE_TOP_PX = 150;
 const EDGE_BOTTOM_PX = 110;
 const SCROLL_STEP_PX = 12;
 const HOURS = Array.from({ length: 25 }, (_, i) => i);
+// The unsaved block a tap leaves on the timeline (never an id of a real block).
+const DRAFT_ID = -1;
+
+/**
+ * How much text a block of this height can hold: two lines, one line, one small line,
+ * or none - text never runs out of its block into the next one.
+ */
+type Fit = 'roomy' | 'line' | 'tiny' | 'none';
+const fitFor = (height: number): Fit => (height >= 44 ? 'roomy' : height >= 26 ? 'line' : height >= 12 ? 'tiny' : 'none');
+const heightOf = (start: number, end: number) => Math.max(((end - start) / 60) * HOUR_PX - 2, 6);
 
 type Mode = DragMode | 'create';
 
@@ -77,6 +87,8 @@ export function Timeline({
   const grid = useRef<HTMLDivElement>(null);
   const nowLine = useRef<HTMLDivElement>(null);
   const [drag, setDragState] = useState<Drag | null>(null);
+  // A tap on a free spot leaves a draft: drag it into place, tap it to name and save it.
+  const [draft, setDraft] = useState<{ start: number; end: number } | null>(null);
   const dragRef = useRef<Drag | null>(null);
   const pressTimer = useRef<number | undefined>(undefined);
   const swallowClick = useRef(false);
@@ -143,7 +155,8 @@ export function Timeline({
       if (!d.active) {
         if (Math.abs(event.clientY + window.scrollY - d.pageY0) < (d.touch ? 8 : 4) && Math.abs(event.clientX - d.clientX) < (d.touch ? 8 : 4)) return;
         // A finger that moves before the long press is scrolling the page.
-        if (d.touch) return end();
+        // The draft moves at once: it is what the finger came for (and the page doesn't scroll under it).
+        if (d.touch && d.id !== DRAFT_ID) return end();
       }
       setDrag(follow(d, event.clientX, event.clientY));
     };
@@ -153,7 +166,8 @@ export function Timeline({
       if (d.active) {
         swallowClick.current = true;
         window.setTimeout(() => (swallowClick.current = false), 0);
-        if (!d.cancel) {
+        if (d.id === DRAFT_ID) setDraft(d.cancel ? null : { start: d.start, end: d.end });
+        else if (!d.cancel) {
           if (d.mode === 'create') onOpen({ start: d.start, end: d.end });
           else {
             const block = blocks.find((b) => b.id === d.id);
@@ -207,7 +221,7 @@ export function Timeline({
       clientY: event.clientY,
     };
     setDrag(held);
-    if (touch) {
+    if (touch && d.id !== DRAFT_ID) {
       window.clearTimeout(pressTimer.current);
       pressTimer.current = window.setTimeout(() => {
         const current = dragRef.current;
@@ -239,9 +253,27 @@ export function Timeline({
 
   const addAt = (event: MouseEvent<HTMLDivElement>) => {
     if (event.target !== event.currentTarget || swallowClick.current) return;
+    // A second tap beside the draft throws it away.
+    if (draft) return setDraft(null);
     const start = minuteAt(event.clientY);
-    onOpen({ start, end: fitEnd(blocks, start, NEW_BLOCK_MINUTES) });
+    setDraft({ start, end: fitEnd(blocks, start, NEW_BLOCK_MINUTES) });
   };
+
+  const grabDraft = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!draft || event.button > 0) return;
+    event.stopPropagation();
+    const mode: DragMode = (event.target as HTMLElement).closest('[data-resize]') ? 'resize' : 'move';
+    begin(event, { id: DRAFT_ID, mode, start0: draft.start, end0: draft.end });
+  };
+
+  const openDraft = () => {
+    if (!draft || swallowClick.current) return;
+    onOpen({ start: draft.start, end: draft.end });
+    setDraft(null);
+  };
+
+  const heldDraft = drag?.id === DRAFT_ID && drag.active ? drag : null;
+  const shownDraft = heldDraft ?? draft;
 
   const creating = drag?.mode === 'create' && drag.active ? drag : null;
 
@@ -265,18 +297,23 @@ export function Timeline({
         const held = drag?.id === planned.id && drag.active ? drag : null;
         const block = held ? { ...planned, start_minute: held.start, end_minute: held.end } : planned;
         const movable = onChange !== undefined && block.source !== 'calendar';
-        const height = Math.max(((block.end_minute - block.start_minute) / 60) * HOUR_PX - 2, 22);
-        const roomy = height >= 44;
+        const height = heightOf(block.start_minute, block.end_minute);
+        const fit = fitFor(height);
+        const roomy = fit === 'roomy';
         const style = block.source === 'calendar' ? { ...look('other'), ...calendarLook(block.color), icon: '📅' } : look(block.category);
         return (
           <button
             key={block.id}
             type="button"
-            onClick={() => !swallowClick.current && onOpen({ block: planned })}
+            onClick={() => {
+              if (swallowClick.current) return;
+              setDraft(null);
+              onOpen({ block: planned });
+            }}
             onPointerDown={(e) => grab(e, planned)}
             onContextMenu={(e) => movable && e.preventDefault()}
-            className={`group absolute isolate [-webkit-touch-callout:none] ${held ? `z-20 cursor-grabbing shadow-xl ring-2 ${held.cancel ? 'opacity-50 ring-red-500' : 'ring-brand'}` : 'z-[1]'} flex min-w-0 overflow-hidden rounded-xl border-l-4 bg-surface px-2 text-left text-sm shadow-sm ${style.block} ${
-              roomy ? 'flex-col justify-start py-1' : 'items-center gap-2'
+            className={`group absolute isolate [-webkit-touch-callout:none] ${held ? `z-20 cursor-grabbing shadow-xl ring-2 ${held.cancel ? 'opacity-50 ring-red-500' : 'ring-brand'}` : 'z-[1]'} flex min-w-0 overflow-hidden border-l-4 bg-surface px-2 text-left shadow-sm ${style.block} ${
+              roomy ? 'flex-col justify-start rounded-xl py-1 text-sm' : fit === 'line' ? 'items-center gap-2 rounded-xl text-sm' : 'items-center gap-1 rounded-md text-[11px] leading-none'
             } ${block.status === 'done' ? 'opacity-55' : ''} ${block.status === 'skipped' ? 'opacity-40' : ''} ${
               held ? '' : block.id === currentId ? 'ring-2 ring-inset ring-brand' : overlaps ? 'ring-2 ring-inset ring-amber-500/80' : ''
             } ${held ? '' : 'transition hover:brightness-[0.97] active:scale-[0.99]'}`}
@@ -288,23 +325,25 @@ export function Timeline({
             }}
           >
             <span aria-hidden className={`absolute inset-0 -z-10 ${style.tint} ${block.source === 'calendar' ? 'hatched' : ''}`} />
+            {fit !== 'none' && (
             <span className={`flex min-w-0 items-center gap-1.5 font-semibold ${block.status === 'skipped' ? 'line-through' : ''}`}>
               <span aria-hidden>{block.status === 'done' ? '✓' : style.icon}</span>
               <span className="truncate">{block.title}</span>
-              {subtaskCount(block) && <span className="shrink-0 text-xs font-normal tabular-nums opacity-70">☑ {subtaskCount(block)}</span>}
+              {fit !== 'tiny' && subtaskCount(block) && <span className="shrink-0 text-xs font-normal tabular-nums opacity-70">☑ {subtaskCount(block)}</span>}
               {overlaps && (
                 <span className="text-amber-600 dark:text-amber-400" title={t('day.overlap')} aria-label={t('day.overlap')}>
                   ⚠
                 </span>
               )}
             </span>
+            )}
             {/* Short and squeezed beside another block: the title gets the room, the times are in the sheet. */}
-            {(roomy || lanes === 1) && (
+            {(roomy || (fit === 'line' && lanes === 1)) && (
               <span className={`shrink-0 text-xs tabular-nums opacity-75 ${roomy ? '' : 'ml-auto'}`}>
                 {formatMinute(block.start_minute)}–{formatMinute(block.end_minute)}
               </span>
             )}
-            {movable && block.status === 'open' && (
+            {movable && block.status === 'open' && fit !== 'tiny' && fit !== 'none' && (
               // The bottom edge: pull it to make the block longer or shorter.
               // Only the grip in the middle of the bottom edge changes the length; the rest of
               // the block moves it.
@@ -316,21 +355,19 @@ export function Timeline({
         );
       })}
 
-      {creating && (
-        <div
-          aria-hidden
-          className={`pointer-events-none absolute z-20 flex flex-col justify-start rounded-xl border-2 border-dashed px-2 py-1 text-sm font-semibold shadow-xl ${
-            creating.cancel ? 'border-red-500 bg-red-500/10 text-red-700 dark:text-red-300' : 'border-brand bg-brand/15 text-ink'
-          }`}
-          style={{ top: top(creating.start) + 1, height: ((creating.end - creating.start) / 60) * HOUR_PX - 2, left: GUTTER, right: 0 }}
-        >
-          <span>{creating.cancel ? t('day.dropToCancel') : t('block.new')}</span>
-          <span className="text-xs font-normal tabular-nums opacity-75">
-            {formatMinute(creating.start)}–{formatMinute(creating.end)}
-          </span>
-        </div>
+      {creating && <NewBlock start={creating.start} end={creating.end} cancel={creating.cancel} />}
+      {shownDraft && !creating && (
+        <NewBlock
+          start={shownDraft.start}
+          end={shownDraft.end}
+          cancel={heldDraft?.cancel ?? false}
+          draft
+          onPointerDown={grabDraft}
+          onClick={openDraft}
+          label={t('day.draft', { time: `${formatMinute(shownDraft.start)}–${formatMinute(shownDraft.end)}` })}
+        />
       )}
-      {drag?.active && drag.cancel && drag.mode !== 'create' && (
+      {drag?.active && drag.cancel && drag.mode !== 'create' && drag.id !== DRAFT_ID && (
         <p aria-hidden className="pointer-events-none fixed inset-x-0 bottom-28 z-30 mx-auto w-fit rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-lg">
           {t('day.dropToCancel')}
         </p>
@@ -342,6 +379,71 @@ export function Timeline({
           <span className="size-3 rounded-full bg-red-500 shadow ring-2 ring-canvas" />
           <span className="h-0.5 flex-1 bg-red-500 shadow-[0_0_0_1px_var(--canvas)]" />
         </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * A block that isn't saved yet: the preview while holding a free spot, or the draft a tap
+ * leaves. Short ones show only their times - that is what matters while placing them.
+ */
+function NewBlock({
+  start,
+  end,
+  cancel,
+  draft = false,
+  label,
+  onClick,
+  onPointerDown,
+}: {
+  start: number;
+  end: number;
+  cancel: boolean;
+  draft?: boolean;
+  label?: string;
+  onClick?: () => void;
+  onPointerDown?: (event: ReactPointerEvent<HTMLDivElement>) => void;
+}) {
+  const { t } = useTranslation();
+  const height = heightOf(start, end);
+  const fit = fitFor(height);
+  const times = `${formatMinute(start)}–${formatMinute(end)}`;
+  const name = cancel ? t('day.dropToCancel') : draft ? t('day.draftName') : t('block.new');
+  return (
+    <div
+      role={draft ? 'button' : undefined}
+      aria-label={label}
+      aria-hidden={draft ? undefined : true}
+      tabIndex={draft ? 0 : undefined}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick?.();
+      }}
+      onKeyDown={(e) => draft && (e.key === 'Enter' || e.key === ' ') && onClick?.()}
+      onPointerDown={onPointerDown}
+      className={`group absolute z-20 flex overflow-hidden border-2 border-dashed px-2 font-semibold shadow-xl ${draft ? 'cursor-grab touch-none' : 'pointer-events-none'} ${
+        fit === 'roomy' ? 'flex-col justify-start rounded-xl py-1 text-sm' : fit === 'line' ? 'items-center gap-2 rounded-xl text-sm' : 'items-center rounded-md text-[11px] leading-none'
+      } ${cancel ? 'border-red-500 bg-red-500/10 text-red-700 dark:text-red-300' : 'border-brand bg-brand/15 text-ink'}`}
+      style={{ top: top(start) + 1, height, left: GUTTER, right: 0 }}
+    >
+      {fit === 'roomy' && (
+        <>
+          <span className="truncate">{name}</span>
+          <span className="text-xs font-normal tabular-nums opacity-75">{times}</span>
+        </>
+      )}
+      {fit === 'line' && (
+        <>
+          <span className="truncate">{name}</span>
+          <span className="ml-auto shrink-0 text-xs font-normal tabular-nums opacity-75">{times}</span>
+        </>
+      )}
+      {fit === 'tiny' && <span className="font-normal tabular-nums">{cancel ? name : times}</span>}
+      {draft && fit !== 'tiny' && fit !== 'none' && (
+        <span data-resize aria-hidden className="absolute bottom-0 left-1/2 flex h-4 w-14 -translate-x-1/2 cursor-ns-resize items-end justify-center pb-1">
+          <span className="h-1 w-8 rounded-full bg-current opacity-40" />
+        </span>
       )}
     </div>
   );

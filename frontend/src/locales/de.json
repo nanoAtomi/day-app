@@ -58,9 +58,11 @@
     "previous": "Vorheriger Tag",
     "next": "Nächster Tag",
     "overlap": "Überschneidet sich",
-    "emptyHint": "Tippe auf eine Uhrzeit – oder halte sie gedrückt und schieb den neuen Block an die richtige Stelle.",
+    "emptyHint": "Tippe auf eine Uhrzeit für einen Entwurf – zieh ihn an die richtige Stelle und tipp ihn an, um ihn zu benennen.",
     "template": "Vorlage für diesen Tag",
-    "dropToCancel": "Loslassen zum Abbrechen"
+    "dropToCancel": "Loslassen zum Abbrechen",
+    "draft": "Entwurf {{time}} – antippen zum Benennen, ziehen zum Verschieben",
+    "draftName": "Antippen zum Benennen"
   },
   "block": {
     "new": "Neuer Block",
