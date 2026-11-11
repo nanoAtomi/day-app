@@ -241,13 +241,34 @@ describe('App', () => {
     );
   });
 
-  it('opens a new block that ends where the next one begins', async () => {
+  it('a tap leaves a draft that fits the gap; tapping it opens the sheet', async () => {
     renderApp('/day');
     const grid = await screen.findByLabelText('Zeitleiste');
     // Tapping 06:45 (12 px + 6.75 h): an hour would run into breakfast at 07:00.
     fireEvent.click(grid, { clientX: 200, clientY: 12 + 6.75 * 64 + 2 });
+    const draft = screen.getByRole('button', { name: /Entwurf 06:45–07:00/ });
+    expect(screen.queryByLabelText('Beginn')).not.toBeInTheDocument(); // nothing saved, no sheet yet
+    fireEvent.click(draft);
     expect(await screen.findByLabelText('Beginn')).toHaveValue('06:45');
     expect(screen.getByLabelText('Ende')).toHaveValue('07:00');
     expect(screen.getByRole('combobox', { name: 'Art' })).toHaveValue('other');
+    expect(requests.some((r) => r.method === 'POST')).toBe(false);
+  });
+
+  it('moves a draft at once and throws it away on a tap beside it', async () => {
+    day = { ...day, blocks: [] };
+    renderApp('/day');
+    const grid = await screen.findByLabelText('Zeitleiste');
+    fireEvent.click(grid, { clientX: 200, clientY: 12 + 8 * 64 + 2 }); // 08:00
+    const draft = screen.getByRole('button', { name: /Entwurf 08:00–09:00/ });
+    // Touch moves a draft without a long press: 64 px = one hour later.
+    fireEvent.pointerDown(draft, { pointerId: 7, pointerType: 'touch', button: 0, clientX: 200, clientY: 600 });
+    fireEvent.pointerMove(window, { pointerId: 7, clientX: 200, clientY: 664 });
+    fireEvent.pointerUp(window, { pointerId: 7, clientX: 200, clientY: 664 });
+    expect(await screen.findByRole('button', { name: /Entwurf 09:00–10:00/ })).toBeInTheDocument();
+    await new Promise((resolve) => setTimeout(resolve, 0)); // the swallowed click after a drag
+    fireEvent.click(grid, { clientX: 200, clientY: 12 + 15 * 64 });
+    expect(screen.queryByRole('button', { name: /Entwurf/ })).not.toBeInTheDocument();
+    expect(requests.some((r) => r.method === 'POST')).toBe(false);
   });
 });
